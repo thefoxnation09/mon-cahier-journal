@@ -1,0 +1,93 @@
+{
+  "jours": {
+    "2026-09-11": {
+      "date": "2026-09-11",
+      "seances": [
+        {
+          "id": "15cf3031-f423-4abf-bd5c-025223e0c2eb",
+          "creneauId": "03f771cd-4ffb-4084-9588-cf2cdf7f8055",
+          "matiereId": "francais",
+          "titre": "",
+          "objectif": "",
+          "materiel": "",
+          "phases": [],
+          "bilan": "",
+          "statut": "a_faire",
+          "impressions": [],
+          "heureDebut": "08:30",
+          "heureFin": "09:30"
+        },
+        {
+          "id": "507efd95-5c72-4fcf-b624-9b1b5fa7959f",
+          "creneauId": "b2c1f03c-983a-4f3b-98b0-2890c77e79bf",
+          "matiereId": "maths",
+          "titre": "",
+          "objectif": "",
+          "materiel": "",
+          "phases": [],
+          "bilan": "",
+          "statut": "a_faire",
+          "impressions": [],
+          "heureDebut": "09:30",
+          "heureFin": "10:30"
+        },
+        {
+          "id": "0e547535-a60a-4b31-bbcf-a768a1975478",
+          "creneauId": "1a79549b-3f24-49bc-b87f-7591fcdf6893",
+          "matiereId": "anglais",
+          "titre": "",
+          "objectif": "",
+          "materiel": "",
+          "phases": [],
+          "bilan": "",
+          "statut": "a_faire",
+          "impressions": [],
+          "heureDebut": "10:45",
+          "heureFin": "11:30"
+        },
+        {
+          "id": "ee15ce1b-40b1-45df-9595-ed9fa19106b0",
+          "creneauId": "1195e8bc-2db7-400e-ba5c-bac68b0072cf",
+          "matiereId": "maths",
+          "titre": "",
+          "objectif": "",
+          "materiel": "",
+          "phases": [],
+          "bilan": "",
+          "statut": "a_faire",
+          "impressions": [],
+          "heureDebut": "13:30",
+          "heureFin": "14:30"
+        },
+        {
+          "id": "c7167df5-0edc-4970-8527-b19240be234d",
+          "creneauId": "65540e2b-e7d4-4f2b-bb22-927fb5b65676",
+          "matiereId": "francais",
+          "titre": "",
+          "objectif": "",
+          "materiel": "",
+          "phases": [],
+          "bilan": "",
+          "statut": "a_faire",
+          "impressions": [],
+          "heureDebut": "14:30",
+          "heureFin": "15:30"
+        },
+        {
+          "id": "34869edc-ecbf-48fc-83b8-fccd95f363a7",
+          "creneauId": "e682ba2f-c8dc-4854-8c0e-6cfcd1ccb3ed",
+          "matiereId": "emc",
+          "titre": "",
+          "objectif": "",
+          "materiel": "",
+          "phases": [],
+          "bilan": "",
+          "statut": "a_faire",
+          "impressions": [],
+          "heureDebut": "15:45",
+          "heureFin": "16:30"
+        }
+      ]
+    }
+  }
+}
