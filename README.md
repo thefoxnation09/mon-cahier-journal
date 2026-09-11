@@ -60,3 +60,4 @@ Dans les réglages du dépôt (Settings → Pages), choisissez la source
 - Lucide React (icônes)
 - react-router-dom (HashRouter, compatible hébergement statique)
 - idb (cache IndexedDB)
+
