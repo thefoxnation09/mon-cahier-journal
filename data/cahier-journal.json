@@ -10,7 +10,16 @@
           "titre": "",
           "objectif": "",
           "materiel": "",
-          "phases": [],
+          "phases": [
+            {
+              "id": "67dab405-a2e6-4c45-93f4-6b9233cd8892",
+              "titre": "",
+              "duree": 10,
+              "consigneEnseignant": "",
+              "activiteEleve": "",
+              "modalite": "collectif"
+            }
+          ],
           "bilan": "",
           "statut": "a_faire",
           "impressions": [],
