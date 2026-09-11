@@ -6,6 +6,13 @@
       "domaine": "",
       "niveau": "CE1",
       "updatedAt": "2026-09-11T17:05:56.673Z"
+    },
+    {
+      "id": "8c23ae97-9d7c-45b3-a705-7c0de08945e7",
+      "titre": "Mathématiques — Numération",
+      "domaine": "Mathématiques",
+      "niveau": "CE1",
+      "updatedAt": "2026-09-11T17:06:08.452Z"
     }
   ]
 }
