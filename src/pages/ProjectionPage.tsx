@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Cloud, CloudLightning, CloudRain, CloudSnow, Sun, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Cloud, CloudLightning, CloudRain, CloudSnow, Eye, Sun, X } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { formatLong, joursOuvresEntre } from '../lib/dates';
+import { devinetteDuJour } from '../data/defaults';
 import type { Rituel } from '../types';
 
 const METEO_OPTIONS = [
@@ -22,7 +23,14 @@ export function ProjectionPage() {
     [rituelsConfig],
   );
   const [index, setIndex] = useState(0);
+  const [reponseVisible, setReponseVisible] = useState(false);
+  const [dernierIndex, setDernierIndex] = useState(index);
   const today = new Date();
+
+  if (index !== dernierIndex) {
+    setDernierIndex(index);
+    setReponseVisible(false);
+  }
 
   if (rituelsActifs.length === 0) {
     return (
@@ -71,6 +79,24 @@ export function ProjectionPage() {
             })}
           </div>
         );
+      case 'devinette': {
+        const devinette = devinetteDuJour(today);
+        return (
+          <div className="text-center max-w-2xl">
+            <p className="text-3xl sm:text-4xl font-medium text-ink-900 leading-relaxed">{devinette.question}</p>
+            {reponseVisible ? (
+              <p className="text-2xl sm:text-3xl font-semibold text-brand-600 mt-8">{devinette.reponse}</p>
+            ) : (
+              <button
+                onClick={() => setReponseVisible(true)}
+                className="no-print mt-8 inline-flex items-center gap-2 bg-white shadow rounded-full px-5 py-2.5 text-sm font-medium text-brand-600 hover:shadow-md"
+              >
+                <Eye size={16} /> Voir la réponse
+              </button>
+            )}
+          </div>
+        );
+      }
       case 'calcul_mental':
       case 'mot_du_jour':
       case 'custom':

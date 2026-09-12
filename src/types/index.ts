@@ -216,6 +216,7 @@ export type TypeRituel =
   | 'mot_du_jour'
   | 'chaque_jour_compte'
   | 'meteo'
+  | 'devinette'
   | 'custom';
 
 export interface Rituel {

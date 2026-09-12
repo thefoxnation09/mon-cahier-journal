@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-cursive: 'Caveat', cursive;
 
   /* Fond général : violet pastel clair */
   --color-cream-50: #f4f0fb;
@@ -93,6 +94,11 @@ body {
   list-style: decimal;
   padding-left: 1.25rem;
 }
+.ardoise-textarea::placeholder {
+  color: currentColor;
+  opacity: 0.35;
+}
+
 .tiptap-editor .ProseMirror h1,
 .tiptap-editor .ProseMirror h2,
 .tiptap-editor .ProseMirror h3 {

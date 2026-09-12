@@ -14,6 +14,7 @@ import { SequencesListPage } from './pages/SequencesListPage';
 import { SequencePage } from './pages/SequencePage';
 import { RituelsPage } from './pages/RituelsPage';
 import { ProjectionPage } from './pages/ProjectionPage';
+import { ArdoisePage } from './pages/ArdoisePage';
 import { ImpressionsPage } from './pages/ImpressionsPage';
 import { ReglagesPage } from './pages/ReglagesPage';
 
@@ -52,6 +53,7 @@ function App() {
     <HashRouter>
       <Routes>
         <Route path="/rituels/projection" element={<ProjectionPage />} />
+        <Route path="/ardoise" element={<ArdoisePage />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to={`/journal/jour/${today}`} replace />} />
           <Route path="/journal/jour/:date" element={<JournalJourPage />} />

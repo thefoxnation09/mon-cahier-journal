@@ -89,8 +89,55 @@ export function rituelsParDefaut(): RituelsConfig {
       },
       { id: uuid(), type: 'mot_du_jour', titre: 'Le mot du jour', contenu: '', ordre: 3, actif: true },
       { id: uuid(), type: 'meteo', titre: 'La météo', ordre: 4, actif: false },
+      { id: uuid(), type: 'devinette', titre: 'La devinette du jour', ordre: 5, actif: true },
     ],
   };
+}
+
+export interface Devinette {
+  question: string;
+  reponse: string;
+}
+
+export const BANQUE_DEVINETTES: Devinette[] = [
+  { question: "Je n'ai pas de bouche mais je raconte plein d'histoires. Qui suis-je ?", reponse: 'Un livre' },
+  { question: "Plus je sèche, plus je suis mouillée. Qui suis-je ?", reponse: 'Une serviette' },
+  { question: "J'ai des dents mais je ne mange jamais. Qui suis-je ?", reponse: 'Un peigne' },
+  { question: "Je monte quand il pleut et je descends quand il fait beau. Qui suis-je ?", reponse: 'Un parapluie' },
+  { question: "J'ai un cou mais pas de tête, deux bras mais pas de mains. Qui suis-je ?", reponse: 'Une chemise' },
+  { question: "Je fais le tour du monde en restant toujours dans mon coin. Qui suis-je ?", reponse: 'Un timbre' },
+  { question: "Plus on m'enlève de couches, plus je fais pleurer. Qui suis-je ?", reponse: "Un oignon" },
+  { question: "Je vole sans ailes et je pleure sans yeux. Qui suis-je ?", reponse: 'Un nuage' },
+  { question: "J'ai des aiguilles mais je ne couds jamais. Qui suis-je ?", reponse: 'Une horloge' },
+  { question: "Plus je suis grand, moins je pèse lourd. Qui suis-je ?", reponse: 'Un trou' },
+  { question: "Je nais dans l'eau, je vis dans l'air. Qui suis-je ?", reponse: 'Une bulle' },
+  { question: "J'ai quatre pattes mais je ne marche jamais. Qui suis-je ?", reponse: 'Une table' },
+  { question: "Je change de forme mais jamais de matière. Qui suis-je ?", reponse: "L'eau (glace, vapeur, liquide)" },
+  { question: "Je grandis quand on me nourrit mais je meurs si on me donne à boire. Qui suis-je ?", reponse: 'Le feu' },
+  { question: "J'ai une couronne mais je ne suis pas un roi. Qui suis-je ?", reponse: 'Une dent' },
+  { question: "Je suis toujours devant toi mais tu ne peux jamais m'attraper. Qui suis-je ?", reponse: "L'avenir" },
+  { question: "Je n'ai ni bouche ni oreilles mais je réponds à toutes les questions. Qui suis-je ?", reponse: 'Un écho' },
+  { question: "Plus il y en a, moins on y voit. Qui suis-je ?", reponse: "Le brouillard (ou le noir)" },
+  { question: "Je suis plein le matin et vide le soir. Qui suis-je ?", reponse: "Le cartable" },
+  { question: "J'ai un pied mais je ne marche jamais. Qui suis-je ?", reponse: 'Un verre' },
+  { question: "Je tombe sans me faire mal, je fonds sans avoir chaud. Qui suis-je ?", reponse: 'Un flocon de neige' },
+  { question: "On me lance mais je reviens toujours tout seul. Qui suis-je ?", reponse: 'Un boomerang' },
+  { question: "Je voyage autour du monde mais je reste toujours dans le même coin de la boîte. Qui suis-je ?", reponse: 'Un timbre-poste' },
+  { question: "J'ai un visage mais pas de tête, des chiffres mais pas de mots. Qui suis-je ?", reponse: 'Une horloge' },
+  { question: "Plus tu en prends, plus tu en laisses derrière toi. Qui suis-je ?", reponse: 'Des pas' },
+  { question: "Je suis noire quand je suis propre et blanche quand je suis sale. Qui suis-je ?", reponse: 'Un tableau (à craie)' },
+  { question: "Je n'ai pas de pattes mais je cours toujours. Qui suis-je ?", reponse: "L'eau d'une rivière" },
+  { question: "On me casse pour s'en servir. Qui suis-je ?", reponse: 'Un œuf' },
+  { question: "Je suis plein de trous mais je retiens l'eau. Qui suis-je ?", reponse: 'Une éponge' },
+  { question: "Je vis dans un livre mais je ne sais pas lire. Qui suis-je ?", reponse: "Un marque-page" },
+];
+
+export function devinetteDuJour(date: Date): Devinette {
+  const debutAnnee = Date.UTC(date.getFullYear(), 0, 1);
+  const aujourdhui = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const jourDeLAnnee = Math.floor((aujourdhui - debutAnnee) / 86400000);
+  const index = ((jourDeLAnnee % BANQUE_DEVINETTES.length) + BANQUE_DEVINETTES.length) % BANQUE_DEVINETTES.length;
+  return BANQUE_DEVINETTES[index];
 }
 
 export const GABARITS_FICHES: GabaritFiche[] = [

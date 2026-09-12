@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { BookMarked, BookOpen, CalendarDays, CalendarRange, FileText, Printer, Settings, Sparkles } from 'lucide-react';
+import { BookMarked, BookOpen, CalendarDays, CalendarRange, FileText, PenLine, Printer, Settings, Sparkles } from 'lucide-react';
 import { SyncStatusBadge } from './SyncStatusBadge';
 import { toDateKey } from '../lib/dates';
 
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/sequences', icon: BookMarked, label: 'Séquences' },
   { to: '/fiches', icon: FileText, label: 'Fiches de prep' },
   { to: '/rituels', icon: Sparkles, label: 'Rituels' },
+  { to: '/ardoise', icon: PenLine, label: 'Ardoise' },
   { to: '/impressions', icon: Printer, label: 'Impressions' },
   { to: '/reglages', icon: Settings, label: 'Réglages' },
 ];

@@ -9,8 +9,11 @@ const LABELS_TYPE: Record<TypeRituel, string> = {
   mot_du_jour: 'Mot du jour',
   chaque_jour_compte: 'Chaque jour compte',
   meteo: 'Météo',
+  devinette: 'Devinette du jour',
   custom: 'Rituel personnalisé',
 };
+
+const TYPES_SANS_CONTENU: TypeRituel[] = ['date', 'chaque_jour_compte', 'meteo', 'devinette'];
 
 export function RituelsPage() {
   const rituelsConfig = useAppStore((s) => s.rituelsConfig);
@@ -102,7 +105,7 @@ export function RituelsPage() {
                 <Trash2 size={14} />
               </button>
             </div>
-            {r.type !== 'date' && r.type !== 'chaque_jour_compte' && r.type !== 'meteo' && (
+            {!TYPES_SANS_CONTENU.includes(r.type) && (
               <input
                 value={r.contenu ?? ''}
                 onChange={(e) => updateRituel(r.id, { contenu: e.target.value })}
