@@ -35,7 +35,9 @@ interface Props {
 
 export function SeanceCard({ dateKey, seance }: Props) {
   const [detailsOuverts, setDetailsOuverts] = useState(false);
-  const matieres = useAppStore((s) => s.emploiDuTemps.matieres);
+  const emploiDuTemps = useAppStore((s) => s.emploiDuTemps);
+  const setEmploiDuTemps = useAppStore((s) => s.setEmploiDuTemps);
+  const matieres = emploiDuTemps.matieres;
   const updateSeance = useAppStore((s) => s.updateSeance);
   const removeSeance = useAppStore((s) => s.removeSeance);
   const reporterSeance = useAppStore((s) => s.reporterSeance);
@@ -53,6 +55,22 @@ export function SeanceCard({ dateKey, seance }: Props) {
 
   function patch(p: Partial<Seance>) {
     updateSeance(dateKey, seance.id, p);
+  }
+
+  /**
+   * Modifie l'horaire ou la matière à la fois pour cette séance et, si elle
+   * provient de l'emploi du temps récurrent, pour le créneau correspondant :
+   * pas besoin de repasser par les Réglages pour que le changement tienne
+   * les semaines suivantes.
+   */
+  function patchCreneau(champs: Partial<Pick<Seance, 'heureDebut' | 'heureFin' | 'matiereId'>>) {
+    patch(champs);
+    if (seance.creneauId) {
+      setEmploiDuTemps({
+        ...emploiDuTemps,
+        creneaux: emploiDuTemps.creneaux.map((c) => (c.id === seance.creneauId ? { ...c, ...champs } : c)),
+      });
+    }
   }
 
   function addPhase() {
@@ -96,17 +114,20 @@ export function SeanceCard({ dateKey, seance }: Props) {
   return (
     <div className="border-b border-ink-500/10 last:border-b-0">
       <div className="flex items-stretch min-w-[760px]">
-        <div className="w-[92px] shrink-0 px-2 py-2 flex flex-col justify-center gap-0.5 border-r border-ink-500/5">
+        <div
+          className="w-[92px] shrink-0 px-2 py-2 flex flex-col justify-center gap-0.5 border-r border-ink-500/5"
+          title={seance.creneauId ? "Modifie aussi l'emploi du temps récurrent (Réglages)" : undefined}
+        >
           <input
             type="time"
             value={seance.heureDebut ?? ''}
-            onChange={(e) => patch({ heureDebut: e.target.value })}
+            onChange={(e) => patchCreneau({ heureDebut: e.target.value })}
             className="w-full text-xs text-ink-900 bg-transparent focus:outline-none"
           />
           <input
             type="time"
             value={seance.heureFin ?? ''}
-            onChange={(e) => patch({ heureFin: e.target.value })}
+            onChange={(e) => patchCreneau({ heureFin: e.target.value })}
             className="w-full text-xs text-ink-500 bg-transparent focus:outline-none"
           />
         </div>
@@ -114,7 +135,8 @@ export function SeanceCard({ dateKey, seance }: Props) {
         <div className="w-[170px] shrink-0 px-2 py-2 border-r border-ink-500/5 flex items-center">
           <select
             value={seance.matiereId}
-            onChange={(e) => patch({ matiereId: e.target.value })}
+            onChange={(e) => patchCreneau({ matiereId: e.target.value })}
+            title={seance.creneauId ? "Modifie aussi l'emploi du temps récurrent (Réglages)" : undefined}
             className="badge-select w-full text-xs font-semibold rounded-full px-2 py-1 border-0 focus:outline-none cursor-pointer"
             style={{ backgroundColor: `${matiere?.couleur}22`, color: matiere?.couleur }}
           >
