@@ -143,13 +143,30 @@ body {
 
   .print-area input,
   .print-area textarea,
-  .print-area select {
+  .print-area select:not(.badge-select) {
     border-color: transparent !important;
     background: transparent !important;
     box-shadow: none !important;
     padding-left: 0 !important;
     resize: none;
     color: #111 !important;
+  }
+
+  /* Les badges de matière gardent leur couleur (fond défini en style inline). */
+  .print-area select.badge-select {
+    border-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Le tableau du cahier journal ne doit jamais être coupé/masqué par un
+     débordement horizontal : il se redimensionne à la largeur de la page. */
+  .print-area .overflow-x-auto {
+    overflow: visible !important;
+  }
+  .print-area [class*='min-w-'] {
+    min-width: 0 !important;
   }
 
   .print-area input[type='checkbox'] {

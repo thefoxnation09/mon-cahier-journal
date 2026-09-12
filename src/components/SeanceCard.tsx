@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import {
   ChevronDown,
-  ChevronRight,
-  Clock,
+  ChevronUp,
   FileText,
   Plus,
   Printer,
@@ -32,11 +31,10 @@ const TYPES_IMPRESSION: { value: TypeImpression; label: string }[] = [
 interface Props {
   dateKey: string;
   seance: Seance;
-  defaultOpen?: boolean;
 }
 
-export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
-  const [open, setOpen] = useState(!!defaultOpen);
+export function SeanceCard({ dateKey, seance }: Props) {
+  const [detailsOuverts, setDetailsOuverts] = useState(false);
   const matieres = useAppStore((s) => s.emploiDuTemps.matieres);
   const updateSeance = useAppStore((s) => s.updateSeance);
   const removeSeance = useAppStore((s) => s.removeSeance);
@@ -96,56 +94,89 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
   const dureeTotale = seance.phases.reduce((sum, p) => sum + p.duree, 0);
 
   return (
-    <div className="bg-white rounded-xl border border-ink-500/10 overflow-hidden" style={{ borderLeftColor: matiere?.couleur, borderLeftWidth: 4 }}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        <button onClick={() => setOpen((o) => !o)} className="no-print text-ink-500 shrink-0">
-          {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </button>
+    <div className="border-b border-ink-500/10 last:border-b-0">
+      <div className="flex items-stretch min-w-[760px]">
+        <div className="w-[92px] shrink-0 px-2 py-2 flex flex-col justify-center gap-0.5 border-r border-ink-500/5">
+          <input
+            type="time"
+            value={seance.heureDebut ?? ''}
+            onChange={(e) => patch({ heureDebut: e.target.value })}
+            className="w-full text-xs text-ink-900 bg-transparent focus:outline-none"
+          />
+          <input
+            type="time"
+            value={seance.heureFin ?? ''}
+            onChange={(e) => patch({ heureFin: e.target.value })}
+            className="w-full text-xs text-ink-500 bg-transparent focus:outline-none"
+          />
+        </div>
 
-        <span
-          className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
-          style={{ backgroundColor: `${matiere?.couleur}22`, color: matiere?.couleur }}
-        >
-          {matiere?.nom ?? 'Matière'}
-        </span>
+        <div className="w-[170px] shrink-0 px-2 py-2 border-r border-ink-500/5 flex items-center">
+          <select
+            value={seance.matiereId}
+            onChange={(e) => patch({ matiereId: e.target.value })}
+            className="badge-select w-full text-xs font-semibold rounded-full px-2 py-1 border-0 focus:outline-none cursor-pointer"
+            style={{ backgroundColor: `${matiere?.couleur}22`, color: matiere?.couleur }}
+          >
+            {matieres.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.nom}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {seance.heureDebut && (
-          <span className="hidden sm:flex items-center gap-1 text-xs text-ink-500 shrink-0">
-            <Clock size={12} /> {seance.heureDebut}–{seance.heureFin}
-          </span>
-        )}
+        <div className="w-[150px] shrink-0 px-2 py-2 border-r border-ink-500/5 flex items-center">
+          <input
+            value={seance.modalites ?? ''}
+            onChange={(e) => patch({ modalites: e.target.value })}
+            placeholder="Collectif, individuel…"
+            className="w-full text-xs text-ink-700 bg-transparent focus:outline-none"
+          />
+        </div>
 
-        <input
-          value={seance.titre}
-          onChange={(e) => patch({ titre: e.target.value })}
-          placeholder="Titre de la séance…"
-          className="flex-1 min-w-0 font-medium text-ink-900 focus:outline-none bg-transparent"
-        />
+        <div className="flex-1 min-w-0 px-3 py-2">
+          <input
+            value={seance.titre}
+            onChange={(e) => patch({ titre: e.target.value })}
+            placeholder="Titre de la séance…"
+            className="w-full text-sm font-medium text-ink-900 bg-transparent focus:outline-none mb-0.5"
+          />
+          <textarea
+            value={seance.objectif ?? ''}
+            onChange={(e) => patch({ objectif: e.target.value })}
+            placeholder="Déroulement, objectifs, pages du cahier / manuel…"
+            rows={2}
+            className="w-full text-xs text-ink-700 bg-transparent focus:outline-none resize-none placeholder:text-ink-500/50"
+          />
+          {seance.reporteeDepuis && (
+            <p className="text-xs text-coral-500 mt-0.5">Reportée depuis le {seance.reporteeDepuis}</p>
+          )}
+        </div>
 
-        <select
-          value={seance.statut}
-          onChange={(e) => patch({ statut: e.target.value as StatutSeance })}
-          className={`no-print text-xs font-medium rounded-full px-2 py-1 border-0 shrink-0 ${statutInfo.cls}`}
-        >
-          {STATUTS.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-
-        <span className={`print:inline-flex hidden text-xs font-medium rounded-full px-2 py-1 ${statutInfo.cls}`}>
+        <span className={`hidden print:flex items-center px-3 shrink-0 text-xs font-medium ${statutInfo.cls} rounded-full my-2 mr-2`}>
           {statutInfo.label}
         </span>
 
-        <div className="no-print flex items-center gap-1 shrink-0">
+        <div className="no-print flex items-center gap-0.5 px-2 shrink-0">
+          <select
+            value={seance.statut}
+            onChange={(e) => patch({ statut: e.target.value as StatutSeance })}
+            className={`text-xs font-medium rounded-full px-1.5 py-1 border-0 ${statutInfo.cls}`}
+          >
+            {STATUTS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
           {seance.statut !== 'terminee' && (
             <button
               onClick={() => reporterSeance(dateKey, seance.id)}
               title="Reporter au jour ouvré suivant"
               className="p-1.5 text-ink-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg"
             >
-              <SkipForward size={15} />
+              <SkipForward size={14} />
             </button>
           )}
           <button
@@ -153,51 +184,42 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
             title="Ouvrir / créer la fiche de prep"
             className="p-1.5 text-ink-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg"
           >
-            <FileText size={15} />
+            <FileText size={14} />
           </button>
           <button
             onClick={() => removeSeance(dateKey, seance.id)}
             title="Supprimer la séance"
             className="p-1.5 text-ink-500 hover:text-coral-600 hover:bg-coral-50 rounded-lg"
           >
-            <Trash2 size={15} />
+            <Trash2 size={14} />
+          </button>
+          <button
+            onClick={() => setDetailsOuverts((o) => !o)}
+            title="Détails avancés : phases, matériel, documents, bilan"
+            className={`p-1.5 rounded-lg ${detailsOuverts ? 'text-brand-600 bg-brand-50' : 'text-ink-500 hover:text-brand-600 hover:bg-brand-50'}`}
+          >
+            {detailsOuverts ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         </div>
       </div>
 
-      {seance.reporteeDepuis && (
-        <p className="px-4 pb-2 text-xs text-coral-500 -mt-1">Reportée depuis le {seance.reporteeDepuis}</p>
-      )}
-
-      {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-ink-500/10 pt-3">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-ink-500">Objectif</label>
-              <textarea
-                value={seance.objectif ?? ''}
-                onChange={(e) => patch({ objectif: e.target.value })}
-                rows={2}
-                className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                placeholder="Ce que les élèves doivent apprendre…"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-ink-500">Matériel</label>
-              <textarea
-                value={seance.materiel ?? ''}
-                onChange={(e) => patch({ materiel: e.target.value })}
-                rows={2}
-                className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                placeholder="Matériel nécessaire…"
-              />
-            </div>
+      {detailsOuverts && (
+        <div className="px-4 pb-4 space-y-4 bg-ink-500/[0.02] border-t border-ink-500/10 pt-3">
+          <div>
+            <label className="text-xs font-medium text-ink-500">Matériel</label>
+            <textarea
+              value={seance.materiel ?? ''}
+              onChange={(e) => patch({ materiel: e.target.value })}
+              rows={2}
+              className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1 focus:outline-none focus:ring-1 focus:ring-brand-400 bg-white"
+              placeholder="Matériel nécessaire…"
+            />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-medium text-ink-500">
-                Déroulement {dureeTotale > 0 && `(${dureeTotale} min)`}
+                Phases détaillées {dureeTotale > 0 && `(${dureeTotale} min)`}
               </label>
               <button
                 onClick={addPhase}
@@ -208,7 +230,7 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
             </div>
             <div className="space-y-2">
               {seance.phases.map((phase, i) => (
-                <div key={phase.id} className="rounded-lg border border-ink-500/10 p-2.5">
+                <div key={phase.id} className="rounded-lg border border-ink-500/10 p-2.5 bg-white">
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-xs font-semibold text-ink-500 shrink-0">{i + 1}.</span>
                     <input
@@ -291,7 +313,7 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
                         })
                       }
                       placeholder="Nom du document…"
-                      className="flex-1 text-sm border border-ink-500/10 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                      className="flex-1 text-sm border border-ink-500/10 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-400 bg-white"
                     />
                     <select
                       value={imp.type}
@@ -350,7 +372,7 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
               value={seance.bilan ?? ''}
               onChange={(e) => patch({ bilan: e.target.value })}
               rows={2}
-              className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1 focus:outline-none focus:ring-1 focus:ring-brand-400"
+              className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1 focus:outline-none focus:ring-1 focus:ring-brand-400 bg-white"
               placeholder="Ce qui a fonctionné, ce qui reste à reprendre…"
             />
           </div>

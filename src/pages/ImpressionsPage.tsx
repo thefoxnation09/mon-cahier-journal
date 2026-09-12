@@ -72,9 +72,10 @@ export function ImpressionsPage() {
     });
   }
 
-  async function voirFichePdf(cheminFichierPdf: string) {
-    const url = await getImpressionFileUrl(cheminFichierPdf);
+  async function voirDocument(chemin: string) {
+    const url = await getImpressionFileUrl(chemin);
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    else window.alert("Impossible de récupérer ce document (vérifiez la connexion GitHub).");
   }
 
   return (
@@ -110,6 +111,9 @@ export function ImpressionsPage() {
 
       <h1 className="text-xl font-semibold text-ink-900">Impressions du jour</h1>
       <p className="text-sm text-ink-500 mt-1 capitalize">{formatLong(date)}</p>
+      <p className="no-print text-xs text-ink-500 mt-1">
+        Cliquez sur « Voir » pour ouvrir un document dans un nouvel onglet : vous pouvez l'y imprimer directement (Ctrl+P) ou le télécharger.
+      </p>
 
       <div className="flex items-center gap-4 mt-4 mb-6 text-sm text-ink-700">
         <span className="flex items-center gap-1.5">
@@ -151,6 +155,20 @@ export function ImpressionsPage() {
             <span className="text-xs font-semibold text-ink-700 bg-ink-500/5 rounded-full px-2 py-0.5 shrink-0">
               × {copiesRequises(imp)}
             </span>
+            {imp.cheminFichier ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  void voirDocument(imp.cheminFichier!);
+                }}
+                className="no-print flex items-center gap-1 text-xs font-medium text-brand-600 hover:bg-brand-50 rounded-lg px-2 py-1 shrink-0"
+                title="Voir / imprimer le PDF"
+              >
+                <Eye size={14} /> Voir
+              </button>
+            ) : (
+              <span className="text-xs text-ink-500/60 italic shrink-0">Pas de fichier</span>
+            )}
           </label>
         ))}
 
@@ -180,12 +198,12 @@ export function ImpressionsPage() {
             <button
               onClick={(e) => {
                 e.preventDefault();
-                void voirFichePdf(fiche.cheminFichierPdf!);
+                void voirDocument(fiche.cheminFichierPdf!);
               }}
-              className="no-print p-1.5 text-brand-600 hover:bg-brand-50 rounded-lg shrink-0"
-              title="Voir le PDF"
+              className="no-print flex items-center gap-1 text-xs font-medium text-brand-600 hover:bg-brand-50 rounded-lg px-2 py-1 shrink-0"
+              title="Voir / imprimer le PDF"
             >
-              <Eye size={15} />
+              <Eye size={14} /> Voir
             </button>
           </label>
         ))}

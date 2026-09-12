@@ -62,6 +62,7 @@ export interface Seance {
   creneauId?: string;
   matiereId: string;
   titre: string;
+  modalites?: string;
   objectif?: string;
   materiel?: string;
   fichePrepId?: string;

@@ -107,16 +107,26 @@ export function JournalJourPage() {
       <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 mb-1">Cahier journal</p>
       <h1 className="text-xl font-semibold text-ink-900 mb-6">{formatLong(date)}</h1>
 
-      <div className="space-y-3">
-        {jour.seances.length === 0 && (
-          <p className="text-sm text-ink-500 italic">
-            Aucune séance ce jour (jour non travaillé ou emploi du temps vide).
-          </p>
-        )}
-        {jour.seances.map((seance) => (
-          <SeanceCard key={seance.id} dateKey={dateKey} seance={seance} />
-        ))}
-      </div>
+      {jour.seances.length === 0 && (
+        <p className="text-sm text-ink-500 italic">
+          Aucune séance ce jour (jour non travaillé ou emploi du temps vide).
+        </p>
+      )}
+
+      {jour.seances.length > 0 && (
+        <div className="rounded-xl border border-ink-500/10 bg-white overflow-x-auto">
+          <div className="flex items-stretch min-w-[760px] bg-brand-500 text-white text-xs font-semibold uppercase tracking-wide">
+            <div className="w-[92px] shrink-0 px-2 py-2">Horaires</div>
+            <div className="w-[170px] shrink-0 px-2 py-2">Discipline</div>
+            <div className="w-[150px] shrink-0 px-2 py-2">Modalités</div>
+            <div className="flex-1 px-3 py-2">Déroulement &amp; Objectifs</div>
+            <div className="no-print w-[168px] shrink-0" />
+          </div>
+          {jour.seances.map((seance) => (
+            <SeanceCard key={seance.id} dateKey={dateKey} seance={seance} />
+          ))}
+        </div>
+      )}
 
       <button
         onClick={() => addSeance(dateKey)}
