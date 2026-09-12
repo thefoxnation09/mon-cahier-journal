@@ -78,10 +78,42 @@ export function FichePrepPage() {
         value={current.titre}
         onChange={(e) => patch({ titre: e.target.value })}
         placeholder="Titre de la fiche"
-        className="w-full text-2xl font-semibold text-ink-900 focus:outline-none bg-transparent mb-4"
+        className="no-print w-full text-2xl font-semibold text-ink-900 focus:outline-none bg-transparent mb-4"
       />
 
-      <div className="mb-4 max-w-sm">
+      {/* Bloc d'en-tête, uniquement à l'impression : rendu tableau sobre. */}
+      <table className="hidden print:table print-table">
+        <tbody>
+          <tr>
+            <th className="w-32">Titre</th>
+            <td colSpan={3} className="text-sm font-semibold">
+              {current.titre}
+            </td>
+          </tr>
+          <tr>
+            <th className="w-32">Domaine</th>
+            <td>{current.domaine}</td>
+            <th className="w-24">Niveau</th>
+            <td>{current.niveau}</td>
+          </tr>
+          <tr>
+            <th>Durée totale</th>
+            <td>{current.duree} min</td>
+            <th>Compétences</th>
+            <td>{current.competences.filter(Boolean).join(' · ')}</td>
+          </tr>
+          <tr>
+            <th>Objectifs</th>
+            <td colSpan={3}>{current.objectifs}</td>
+          </tr>
+          <tr>
+            <th>Matériel</th>
+            <td colSpan={3}>{current.materiel}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="no-print mb-4 max-w-sm">
         <label className="text-xs font-medium text-ink-500 mb-1 block">Document PDF associé (exercices, support…)</label>
         <PdfDropZone
           nomFichier={current.nomFichierPdf}
@@ -91,7 +123,7 @@ export function FichePrepPage() {
         />
       </div>
 
-      <div className="grid sm:grid-cols-4 gap-3 mb-4">
+      <div className="no-print grid sm:grid-cols-4 gap-3 mb-4">
         <div>
           <label className="text-xs font-medium text-ink-500">Domaine</label>
           <input
@@ -124,7 +156,7 @@ export function FichePrepPage() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="no-print mb-4">
         <label className="text-xs font-medium text-ink-500">Compétences travaillées (une par ligne)</label>
         <textarea
           value={current.competences.join('\n')}
@@ -135,7 +167,7 @@ export function FichePrepPage() {
         />
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-3 mb-6">
+      <div className="no-print grid sm:grid-cols-2 gap-3 mb-6">
         <div>
           <label className="text-xs font-medium text-ink-500">Objectifs</label>
           <textarea
@@ -166,7 +198,7 @@ export function FichePrepPage() {
             <Plus size={13} /> Phase
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="no-print space-y-2">
           {current.etapes.map((etape, i) => (
             <div key={etape.id} className="rounded-lg border border-ink-500/10 p-3">
               <div className="flex items-center gap-2 mb-2">
@@ -247,9 +279,39 @@ export function FichePrepPage() {
             </div>
           ))}
         </div>
+
+        {/* Rendu tableau, uniquement à l'impression. */}
+        <table className="hidden print:table print-table">
+          <thead>
+            <tr>
+              <th className="w-6">N°</th>
+              <th>Phase</th>
+              <th className="w-16">Durée</th>
+              <th className="w-24">Modalité</th>
+              <th>Déroulement</th>
+              <th>Rôle du maître</th>
+              <th>Rôle de l'élève</th>
+              <th>Matériel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {current.etapes.map((etape, i) => (
+              <tr key={etape.id}>
+                <td>{i + 1}</td>
+                <td>{etape.titre}</td>
+                <td>{etape.duree} min</td>
+                <td>{MODALITES.find((m) => m.value === etape.modalite)?.label}</td>
+                <td>{etape.deroulement}</td>
+                <td>{etape.consigneEnseignant}</td>
+                <td>{etape.activiteEleve}</td>
+                <td>{etape.materiel}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-3 mb-6">
+      <div className="no-print grid sm:grid-cols-3 gap-3 mb-6">
         <div>
           <label className="text-xs font-medium text-ink-500">Observations</label>
           <textarea
@@ -281,6 +343,23 @@ export function FichePrepPage() {
           />
         </div>
       </div>
+
+      <table className="hidden print:table print-table">
+        <thead>
+          <tr>
+            <th>Observations</th>
+            <th>Prolongement(s) possible(s)</th>
+            <th>Remédiation(s) éventuelle(s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{current.observations}</td>
+            <td>{current.prolongements}</td>
+            <td>{current.remediation}</td>
+          </tr>
+        </tbody>
+      </table>
 
       <div>
         <label className="text-xs font-medium text-ink-500 mb-1 block">Notes libres</label>

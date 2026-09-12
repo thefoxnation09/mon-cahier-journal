@@ -79,10 +79,42 @@ export function SequencePage() {
         value={current.titre}
         onChange={(e) => patch({ titre: e.target.value })}
         placeholder="Titre de la séquence"
-        className="w-full text-2xl font-semibold text-ink-900 focus:outline-none bg-transparent mb-4"
+        className="no-print w-full text-2xl font-semibold text-ink-900 focus:outline-none bg-transparent mb-4"
       />
 
-      <div className="grid sm:grid-cols-3 gap-3 mb-4">
+      {/* Bloc d'en-tête, uniquement à l'impression : rendu tableau sobre. */}
+      <table className="hidden print:table print-table">
+        <tbody>
+          <tr>
+            <th className="w-32">Titre</th>
+            <td colSpan={3} className="text-sm font-semibold">
+              {current.titre}
+            </td>
+          </tr>
+          <tr>
+            <th className="w-32">Cycle</th>
+            <td>{current.cycle}</td>
+            <th className="w-24">Niveau</th>
+            <td>{current.niveau}</td>
+          </tr>
+          <tr>
+            <th>Domaine du socle</th>
+            <td colSpan={3}>{current.domaine}</td>
+          </tr>
+          <tr>
+            <th>Objectif général</th>
+            <td colSpan={3}>{current.objectifGeneral}</td>
+          </tr>
+          <tr>
+            <th>Connaissances réactivées</th>
+            <td colSpan={2}>{current.connaissancesReactivees}</td>
+            <th className="w-24">Nb séances</th>
+            <td>{current.seances.length}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="no-print grid sm:grid-cols-3 gap-3 mb-4">
         <div>
           <label className="text-xs font-medium text-ink-500">Cycle</label>
           <input
@@ -110,7 +142,7 @@ export function SequencePage() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="no-print mb-4">
         <label className="text-xs font-medium text-ink-500">Objectif général de la séquence</label>
         <textarea
           value={current.objectifGeneral}
@@ -120,7 +152,7 @@ export function SequencePage() {
         />
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-3 mb-6">
+      <div className="no-print grid sm:grid-cols-3 gap-3 mb-6">
         <div className="sm:col-span-2">
           <label className="text-xs font-medium text-ink-500">Connaissances réactivées (une par ligne)</label>
           <textarea
@@ -146,7 +178,7 @@ export function SequencePage() {
             <Plus size={13} /> Séance
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="no-print space-y-2">
           {current.seances.map((row, i) => (
             <div key={row.id} className="rounded-lg border border-ink-500/10 p-3">
               <div className="flex items-start gap-2">
@@ -195,9 +227,31 @@ export function SequencePage() {
             </div>
           ))}
         </div>
+
+        {/* Rendu tableau, uniquement à l'impression. */}
+        <table className="hidden print:table print-table">
+          <thead>
+            <tr>
+              <th className="w-6">N°</th>
+              <th>Titre</th>
+              <th>Objectifs</th>
+              <th className="w-16">Durée</th>
+            </tr>
+          </thead>
+          <tbody>
+            {current.seances.map((row, i) => (
+              <tr key={row.id}>
+                <td>{i + 1}</td>
+                <td>{row.titre}</td>
+                <td>{row.objectifs}</td>
+                <td>{row.duree} min</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <div>
+      <div className="no-print">
         <label className="text-xs font-medium text-ink-500">Évaluation — descriptif et outils utilisés</label>
         <textarea
           value={current.evaluationDescriptif}
@@ -206,6 +260,15 @@ export function SequencePage() {
           className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1"
         />
       </div>
+
+      <table className="hidden print:table print-table">
+        <tbody>
+          <tr>
+            <th className="w-40">Évaluation</th>
+            <td>{current.evaluationDescriptif}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
