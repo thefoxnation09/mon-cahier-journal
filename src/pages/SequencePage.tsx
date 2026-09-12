@@ -82,15 +82,13 @@ export function SequencePage() {
         className="no-print w-full text-2xl font-semibold text-ink-900 focus:outline-none bg-transparent mb-4"
       />
 
-      {/* Bloc d'en-tête, uniquement à l'impression : rendu tableau sobre. */}
+      {/* Titre du document et bloc d'en-tête, uniquement à l'impression. */}
+      <h1 className="hidden print:block text-xl font-bold uppercase text-center mb-2">
+        Fiche de séquence{current.titre ? ` : ${current.titre}` : ''}
+        {current.niveau ? ` (${current.niveau})` : ''}
+      </h1>
       <table className="hidden print:table print-table">
         <tbody>
-          <tr>
-            <th className="w-32">Titre</th>
-            <td colSpan={3} className="text-sm font-semibold">
-              {current.titre}
-            </td>
-          </tr>
           <tr>
             <th className="w-32">Cycle</th>
             <td>{current.cycle}</td>
