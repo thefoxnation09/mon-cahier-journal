@@ -5,6 +5,7 @@ import { ArrowLeft, Plus, Printer, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { PdfDropZone } from '../components/PdfDropZone';
+import { imprimerEnPaysage } from '../lib/print';
 import { MODALITES, type EtapeFiche, type FichePrep, type ModaliteTravail } from '../types';
 
 export function FichePrepPage() {
@@ -66,7 +67,7 @@ export function FichePrepPage() {
           <ArrowLeft size={16} /> Retour aux fiches
         </button>
         <button
-          onClick={() => window.print()}
+          onClick={imprimerEnPaysage}
           className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg px-3 py-1.5"
         >
           <Printer size={15} /> Imprimer

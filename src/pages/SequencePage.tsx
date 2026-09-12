@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 import { ArrowLeft, FileText, Plus, Printer, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
+import { imprimerEnPaysage } from '../lib/print';
 import type { Sequence, SequenceSeance } from '../types';
 
 export function SequencePage() {
@@ -67,7 +68,7 @@ export function SequencePage() {
           <ArrowLeft size={16} /> Retour aux séquences
         </button>
         <button
-          onClick={() => window.print()}
+          onClick={imprimerEnPaysage}
           className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg px-3 py-1.5"
         >
           <Printer size={15} /> Imprimer

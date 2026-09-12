@@ -176,9 +176,9 @@ export function SeanceCard({ dateKey, seance }: Props) {
           )}
         </div>
 
-        <span className={`hidden print:flex items-center px-3 shrink-0 text-xs font-medium ${statutInfo.cls} rounded-full my-2 mr-2`}>
-          {statutInfo.label}
-        </span>
+        <div className="hidden print:flex w-[64px] shrink-0 items-center justify-center border-l border-ink-500/10">
+          <div className="w-5 h-5 border border-ink-500/40 rounded" />
+        </div>
 
         <div className="no-print flex items-center gap-0.5 px-2 shrink-0">
           <select

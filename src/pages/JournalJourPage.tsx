@@ -121,6 +121,7 @@ export function JournalJourPage() {
             <div className="w-[150px] shrink-0 px-2 py-2">Modalités</div>
             <div className="flex-1 px-3 py-2">Déroulement &amp; Objectifs</div>
             <div className="no-print w-[168px] shrink-0" />
+            <div className="hidden print:flex w-[64px] shrink-0 px-1 py-2 items-center justify-center text-center">Fait ?</div>
           </div>
           {jour.seances.map((seance) => (
             <SeanceCard key={seance.id} dateKey={dateKey} seance={seance} />
