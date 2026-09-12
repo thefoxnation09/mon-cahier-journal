@@ -240,7 +240,7 @@ export function SequencePage() {
             {current.seances.map((row, i) => (
               <tr key={row.id}>
                 <td>{i + 1}</td>
-                <td>{row.titre}</td>
+                <td className="font-semibold">{row.titre}</td>
                 <td>{row.objectifs}</td>
                 <td>{row.duree} min</td>
               </tr>

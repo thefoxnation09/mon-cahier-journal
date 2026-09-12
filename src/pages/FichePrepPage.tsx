@@ -296,7 +296,7 @@ export function FichePrepPage() {
             {current.etapes.map((etape, i) => (
               <tr key={etape.id}>
                 <td>{i + 1}</td>
-                <td>{etape.titre}</td>
+                <td className="font-semibold">{etape.titre}</td>
                 <td>{etape.duree} min</td>
                 <td>{MODALITES.find((m) => m.value === etape.modalite)?.label}</td>
                 <td>{etape.deroulement}</td>
