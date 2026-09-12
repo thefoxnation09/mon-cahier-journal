@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
+import { PdfDropZone } from './PdfDropZone';
 import { MODALITES, type ModaliteTravail, type PhaseSeance, type Seance, type StatutSeance, type TypeImpression } from '../types';
 
 const STATUTS: { value: StatutSeance; label: string; cls: string }[] = [
@@ -43,6 +44,9 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
   const toggleImpression = useAppStore((s) => s.toggleImpression);
   const addImpression = useAppStore((s) => s.addImpression);
   const removeImpression = useAppStore((s) => s.removeImpression);
+  const uploadImpressionFile = useAppStore((s) => s.uploadImpressionFile);
+  const removeImpressionFile = useAppStore((s) => s.removeImpressionFile);
+  const getImpressionFileUrl = useAppStore((s) => s.getImpressionFileUrl);
   const creerFiche = useAppStore((s) => s.creerFiche);
   const navigate = useNavigate();
 
@@ -271,60 +275,70 @@ export function SeanceCard({ dateKey, seance, defaultOpen }: Props) {
             </div>
             <div className="space-y-1.5">
               {seance.impressions.map((imp) => (
-                <div key={imp.id} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={imp.coche}
-                    onChange={() => toggleImpression(dateKey, seance.id, imp.id)}
-                    className="accent-brand-500"
-                  />
-                  <input
-                    value={imp.nom}
-                    onChange={(e) =>
-                      updateSeance(dateKey, seance.id, {
-                        impressions: seance.impressions.map((i) => (i.id === imp.id ? { ...i, nom: e.target.value } : i)),
-                      })
-                    }
-                    placeholder="Nom du document…"
-                    className="flex-1 text-sm border border-ink-500/10 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                  />
-                  <select
-                    value={imp.type}
-                    onChange={(e) =>
-                      updateSeance(dateKey, seance.id, {
-                        impressions: seance.impressions.map((i) =>
-                          i.id === imp.id ? { ...i, type: e.target.value as TypeImpression } : i,
-                        ),
-                      })
-                    }
-                    className="text-xs border border-ink-500/10 rounded px-1 py-1"
-                  >
-                    {TYPES_IMPRESSION.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min={0}
-                    value={imp.nbExemplaires ?? ''}
-                    onChange={(e) =>
-                      updateSeance(dateKey, seance.id, {
-                        impressions: seance.impressions.map((i) =>
-                          i.id === imp.id ? { ...i, nbExemplaires: Number(e.target.value) || undefined } : i,
-                        ),
-                      })
-                    }
-                    placeholder="Nb"
-                    className="w-14 text-xs border border-ink-500/10 rounded px-1 py-1 text-center"
-                  />
-                  <button
-                    onClick={() => removeImpression(dateKey, seance.id, imp.id)}
-                    className="no-print text-ink-500 hover:text-coral-500"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                <div key={imp.id} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={imp.coche}
+                      onChange={() => toggleImpression(dateKey, seance.id, imp.id)}
+                      className="accent-brand-500"
+                    />
+                    <input
+                      value={imp.nom}
+                      onChange={(e) =>
+                        updateSeance(dateKey, seance.id, {
+                          impressions: seance.impressions.map((i) => (i.id === imp.id ? { ...i, nom: e.target.value } : i)),
+                        })
+                      }
+                      placeholder="Nom du document…"
+                      className="flex-1 text-sm border border-ink-500/10 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                    />
+                    <select
+                      value={imp.type}
+                      onChange={(e) =>
+                        updateSeance(dateKey, seance.id, {
+                          impressions: seance.impressions.map((i) =>
+                            i.id === imp.id ? { ...i, type: e.target.value as TypeImpression } : i,
+                          ),
+                        })
+                      }
+                      className="text-xs border border-ink-500/10 rounded px-1 py-1"
+                    >
+                      {TYPES_IMPRESSION.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min={0}
+                      value={imp.nbExemplaires ?? ''}
+                      onChange={(e) =>
+                        updateSeance(dateKey, seance.id, {
+                          impressions: seance.impressions.map((i) =>
+                            i.id === imp.id ? { ...i, nbExemplaires: Number(e.target.value) || undefined } : i,
+                          ),
+                        })
+                      }
+                      placeholder="Nb"
+                      className="w-14 text-xs border border-ink-500/10 rounded px-1 py-1 text-center"
+                    />
+                    <button
+                      onClick={() => removeImpression(dateKey, seance.id, imp.id)}
+                      className="no-print text-ink-500 hover:text-coral-500"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                  <div className="pl-6">
+                    <PdfDropZone
+                      nomFichier={imp.nomFichier}
+                      onUpload={(file) => uploadImpressionFile(dateKey, seance.id, imp.id, file)}
+                      onRemove={() => removeImpressionFile(dateKey, seance.id, imp.id)}
+                      onView={() => getImpressionFileUrl(imp.cheminFichier ?? '')}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

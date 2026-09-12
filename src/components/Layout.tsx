@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { BookOpen, CalendarDays, CalendarRange, FileText, Printer, Settings, Sparkles } from 'lucide-react';
+import { BookMarked, BookOpen, CalendarDays, CalendarRange, FileText, Printer, Settings, Sparkles } from 'lucide-react';
 import { SyncStatusBadge } from './SyncStatusBadge';
 import { toDateKey } from '../lib/dates';
 
 const navItems = [
   { to: '/journal/jour', icon: CalendarDays, label: 'Jour' },
   { to: '/journal/semaine', icon: CalendarRange, label: 'Semaine' },
+  { to: '/sequences', icon: BookMarked, label: 'Séquences' },
   { to: '/fiches', icon: FileText, label: 'Fiches de prep' },
   { to: '/rituels', icon: Sparkles, label: 'Rituels' },
   { to: '/impressions', icon: Printer, label: 'Impressions' },

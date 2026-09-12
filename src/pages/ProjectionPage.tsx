@@ -6,11 +6,11 @@ import { formatLong, joursOuvresEntre } from '../lib/dates';
 import type { Rituel } from '../types';
 
 const METEO_OPTIONS = [
-  { value: 'soleil', icon: Sun, label: 'Soleil', color: '#f59e0b' },
-  { value: 'nuage', icon: Cloud, label: 'Nuageux', color: '#64748b' },
-  { value: 'pluie', icon: CloudRain, label: 'Pluie', color: '#5a80e8' },
-  { value: 'neige', icon: CloudSnow, label: 'Neige', color: '#7a9cf5' },
-  { value: 'orage', icon: CloudLightning, label: 'Orage', color: '#f2665c' },
+  { value: 'soleil', icon: Sun, label: 'Soleil', color: '#e6ac5c' },
+  { value: 'nuage', icon: Cloud, label: 'Nuageux', color: '#b9b3cc' },
+  { value: 'pluie', icon: CloudRain, label: 'Pluie', color: '#7fb2e0' },
+  { value: 'neige', icon: CloudSnow, label: 'Neige', color: '#ac8fe4' },
+  { value: 'orage', icon: CloudLightning, label: 'Orage', color: '#e592ab' },
 ];
 
 export function ProjectionPage() {

@@ -53,6 +53,8 @@ export interface ImpressionItem {
   type: TypeImpression;
   nbExemplaires?: number;
   coche: boolean;
+  cheminFichier?: string; // chemin du PDF dans le dépôt de données
+  nomFichier?: string; // nom original du fichier déposé
 }
 
 export interface Seance {
@@ -101,8 +103,10 @@ export interface EtapeFiche {
   id: string;
   titre: string;
   duree: number;
+  deroulement?: string;
   consigneEnseignant: string;
   activiteEleve: string;
+  materiel?: string;
   modalite: ModaliteTravail;
 }
 
@@ -117,8 +121,12 @@ export interface FichePrep {
   duree: number;
   seanceId?: string;
   jourDate?: string;
+  sequenceId?: string;
   contenuHtml: string;
   etapes: EtapeFiche[];
+  observations?: string;
+  prolongements?: string;
+  remediation?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -146,6 +154,56 @@ export interface GabaritFiche {
   materiel: string;
   duree: number;
   etapes: Array<Omit<EtapeFiche, 'id'>>;
+}
+
+// ---------------------------------------------------------------------------
+// Domaine : Fiches de séquence
+// ---------------------------------------------------------------------------
+
+export interface SequenceSeance {
+  id: string;
+  titre: string;
+  objectifs: string;
+  duree: number;
+  fichePrepId?: string;
+}
+
+export interface Sequence {
+  id: string;
+  titre: string;
+  cycle: string;
+  niveau: string;
+  domaine: string;
+  objectifGeneral: string;
+  connaissancesReactivees: string;
+  seances: SequenceSeance[];
+  evaluationDescriptif: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SequenceSummary {
+  id: string;
+  titre: string;
+  domaine: string;
+  niveau: string;
+  nombreSeances: number;
+  updatedAt: string;
+}
+
+export interface SequencesIndex {
+  sequences: SequenceSummary[];
+}
+
+export interface GabaritSequence {
+  id: string;
+  nom: string;
+  cycle: string;
+  domaine: string;
+  objectifGeneral: string;
+  connaissancesReactivees: string;
+  seances: Array<Omit<SequenceSeance, 'id' | 'fichePrepId'>>;
+  evaluationDescriptif: string;
 }
 
 // ---------------------------------------------------------------------------

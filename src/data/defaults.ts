@@ -2,18 +2,19 @@ import { v4 as uuid } from 'uuid';
 import type {
   EmploiDuTemps,
   GabaritFiche,
+  GabaritSequence,
   RituelsConfig,
   TemplatesData,
 } from '../types';
 
 export const MATIERES_DEFAUT = [
-  { id: 'francais', nom: 'Français', couleur: '#5a80e8' },
-  { id: 'maths', nom: 'Mathématiques', couleur: '#f59e0b' },
-  { id: 'qlm', nom: 'Questionner le monde', couleur: '#22c55e' },
-  { id: 'eps', nom: 'EPS', couleur: '#f2665c' },
-  { id: 'arts', nom: 'Arts', couleur: '#a78bfa' },
-  { id: 'anglais', nom: 'Anglais', couleur: '#06b6d4' },
-  { id: 'emc', nom: 'EMC', couleur: '#64748b' },
+  { id: 'francais', nom: 'Français', couleur: '#7fb2e0' },
+  { id: 'maths', nom: 'Mathématiques', couleur: '#f0c789' },
+  { id: 'qlm', nom: 'Questionner le monde', couleur: '#74c093' },
+  { id: 'eps', nom: 'EPS', couleur: '#e592ab' },
+  { id: 'arts', nom: 'Arts', couleur: '#ac8fe4' },
+  { id: 'anglais', nom: 'Anglais', couleur: '#7fd4c9' },
+  { id: 'emc', nom: 'EMC', couleur: '#b9b3cc' },
 ];
 
 function creneau(jour: EmploiDuTemps['creneaux'][number]['jour'], heureDebut: string, heureFin: string, matiereId: string) {
@@ -236,5 +237,62 @@ export const GABARITS_FICHES: GabaritFiche[] = [
         modalite: 'individuel',
       },
     ],
+  },
+];
+
+export const GABARITS_SEQUENCES: GabaritSequence[] = [
+  {
+    id: 'nombres-jusqua-10',
+    nom: 'Les nombres jusqu\'à 10',
+    cycle: 'Cycle 2',
+    domaine: 'Nombres et Calculs',
+    objectifGeneral:
+      'Comprendre, représenter et manipuler les nombres jusqu\'à 10 (dénombrement, comparaison, décomposition, et calculs simples d\'addition et de soustraction).',
+    connaissancesReactivees:
+      'La chaîne numérique orale et écrite\nLe dénombrement et la cardinalité\nLe sens des opérations simples : addition, soustraction\nLa décomposition additive des nombres\nLes relations d\'ordre : comparaison, encadrement',
+    seances: [
+      {
+        titre: 'Dire, lire, écrire, dénombrer',
+        objectifs:
+          'Dire, lire et écrire les nombres.\nDénombrer une collection.\nAssocier un nombre à sa position sur la ligne numérique.',
+        duree: 40,
+      },
+      {
+        titre: 'Calculer des sommes et des différences',
+        objectifs: 'Calcul en ligne des sommes et des différences.\nIdentifier l\'opération à effectuer.',
+        duree: 40,
+      },
+      {
+        titre: 'Situer des objets',
+        objectifs:
+          'Situer des objets les uns par rapport aux autres en utilisant un vocabulaire approprié : gauche, droite, au-dessus, au-dessous, entre, devant, derrière.',
+        duree: 40,
+      },
+      {
+        titre: 'Évaluation des 3 premières séances + Comparer, ranger, encadrer à l\'unité',
+        objectifs:
+          'Éval n°1 (séances 1 à 3) ≈15-20 min\nComparer et ranger les nombres\nEncadrer les nombres\nEstimer la position d\'un nombre sur une ligne numérique',
+        duree: 60,
+      },
+      {
+        titre: 'Décomposer le nombre 10',
+        objectifs:
+          'Décomposer le nombre 10\nConnaître les compléments à 10\nUtiliser le lien entre addition et soustraction',
+        duree: 40,
+      },
+      {
+        titre: 'Décomposer les nombres jusqu\'à 10',
+        objectifs:
+          'Connaître les compléments à 10\nDécomposer les nombres jusqu\'à 10\nUtiliser le lien entre addition et soustraction',
+        duree: 40,
+      },
+      {
+        titre: 'Compléter des additions et des soustractions à trou',
+        objectifs: 'Compléter des additions à trous\nCompléter des soustractions à trous',
+        duree: 40,
+      },
+    ],
+    evaluationDescriptif:
+      'Éval n°1 (séances 1 à 3) ≈15-20 min\nExercice 1 : compter les objets et écrire le nombre en chiffres, puis en lettres.\nExercice 2 : calculer des sommes et des différences.\nExercice 3 : observe l\'image et complète les phrases avec gauche, droite, sur, sous, entre.\n\nÉval n°2 (séances 4 à 7) ≈15-20 min\nExercice 4 : complète avec les symboles < ou >.\nExercice 5 : décomposer le nombre 10 et les compléments.\nExercice 6 : compléter les opérations à trou.',
   },
 ];

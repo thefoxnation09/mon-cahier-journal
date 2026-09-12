@@ -8,6 +8,7 @@ import {
   templatesParDefaut,
 } from '../data/defaults';
 import { jourSemaineDe, prochainJourOuvre, toDateKey } from '../lib/dates';
+import { fileToBase64, slugifyFilename } from '../lib/files';
 import type {
   CahierJournal,
   EmploiDuTemps,
@@ -19,6 +20,8 @@ import type {
   Rituel,
   RituelsConfig,
   Seance,
+  Sequence,
+  SequencesIndex,
   StatutSeance,
   SyncState,
   TemplatesData,
@@ -52,6 +55,8 @@ interface AppState {
   rituelsConfig: RituelsConfig;
   fichesIndex: FichesIndex;
   fichesCache: Record<string, FichePrep>;
+  sequencesIndex: SequencesIndex;
+  sequencesCache: Record<string, Sequence>;
 
   init: () => Promise<void>;
   refreshGitHubStatus: () => void;
@@ -71,6 +76,9 @@ interface AppState {
   toggleImpression: (dateKey: string, seanceId: string, impressionId: string) => void;
   addImpression: (dateKey: string, seanceId: string, impression: Omit<ImpressionItem, 'id' | 'coche'>) => void;
   removeImpression: (dateKey: string, seanceId: string, impressionId: string) => void;
+  uploadImpressionFile: (dateKey: string, seanceId: string, impressionId: string, file: File) => Promise<{ ok: boolean; error?: string }>;
+  removeImpressionFile: (dateKey: string, seanceId: string, impressionId: string) => Promise<void>;
+  getImpressionFileUrl: (cheminFichier: string) => Promise<string | null>;
 
   // Templates
   enregistrerJourneeCommeTemplate: (dateKey: string, nom: string) => void;
@@ -82,6 +90,12 @@ interface AppState {
   creerFiche: (partial: Partial<FichePrep>) => Promise<FichePrep>;
   updateFiche: (id: string, patch: Partial<FichePrep>) => Promise<void>;
   deleteFiche: (id: string) => Promise<void>;
+
+  // Séquences
+  loadSequence: (id: string) => Promise<Sequence | null>;
+  creerSequence: (partial: Partial<Sequence>) => Promise<Sequence>;
+  updateSequence: (id: string, patch: Partial<Sequence>) => Promise<void>;
+  deleteSequence: (id: string) => Promise<void>;
 
   // Rituels
   updateRituelsConfig: (patch: Partial<RituelsConfig>) => void;
@@ -115,16 +129,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   rituelsConfig: rituelsParDefaut(),
   fichesIndex: { fiches: [] },
   fichesCache: {},
+  sequencesIndex: { sequences: [] },
+  sequencesCache: {},
 
   init: async () => {
     githubSync.onStateChange((s) => set({ syncState: s }));
 
-    const [edt, templates, cahier, rituels, fichesIndex] = await Promise.all([
+    const [edt, templates, cahier, rituels, fichesIndex, sequencesIndex] = await Promise.all([
       githubSync.readFile(PATHS.emploiDuTemps, emploiDuTempsParDefaut(), (d) => set({ emploiDuTemps: d })),
       githubSync.readFile(PATHS.templates, templatesParDefaut(), (d) => set({ templates: d })),
       githubSync.readFile(PATHS.cahierJournal, { jours: {} } as CahierJournal, (d) => set({ cahierJournal: d })),
       githubSync.readFile(PATHS.rituels, rituelsParDefaut(), (d) => set({ rituelsConfig: d })),
       githubSync.readFile(PATHS.fichesIndex, { fiches: [] } as FichesIndex, (d) => set({ fichesIndex: d })),
+      githubSync.readFile(PATHS.sequencesIndex, { sequences: [] } as SequencesIndex, (d) => set({ sequencesIndex: d })),
     ]);
 
     set({
@@ -133,6 +150,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       cahierJournal: cahier,
       rituelsConfig: rituels,
       fichesIndex,
+      sequencesIndex,
       ready: true,
       isGitHubConfigured: githubSync.isConfigured(),
     });
@@ -316,6 +334,39 @@ export const useAppStore = create<AppState>((set, get) => ({
       return { cahierJournal: { jours } };
     }),
 
+  uploadImpressionFile: async (dateKey, seanceId, impressionId, file) => {
+    const nomFichier = slugifyFilename(file.name);
+    const cheminFichier = PATHS.impressionFichier(dateKey, seanceId, impressionId, nomFichier);
+    const base64 = await fileToBase64(file);
+    const result = await githubSync.putBinaryFile(
+      cheminFichier,
+      base64,
+      `chore: ajout du document ${nomFichier}`,
+    );
+    if (result.ok) {
+      get().updateSeance(dateKey, seanceId, {
+        impressions: (get().cahierJournal.jours[dateKey]?.seances.find((s) => s.id === seanceId)?.impressions ?? []).map(
+          (i) => (i.id === impressionId ? { ...i, cheminFichier, nomFichier: file.name } : i),
+        ),
+      });
+    }
+    return result;
+  },
+
+  removeImpressionFile: async (dateKey, seanceId, impressionId) => {
+    const jour = get().cahierJournal.jours[dateKey];
+    const impression = jour?.seances.find((s) => s.id === seanceId)?.impressions.find((i) => i.id === impressionId);
+    if (!impression?.cheminFichier) return;
+    await githubSync.deleteBinaryFile(impression.cheminFichier, `chore: suppression du document ${impression.nomFichier ?? ''}`);
+    get().updateSeance(dateKey, seanceId, {
+      impressions: (jour?.seances.find((s) => s.id === seanceId)?.impressions ?? []).map((i) =>
+        i.id === impressionId ? { ...i, cheminFichier: undefined, nomFichier: undefined } : i,
+      ),
+    });
+  },
+
+  getImpressionFileUrl: async (cheminFichier) => githubSync.getBinaryFileUrl(cheminFichier),
+
   enregistrerJourneeCommeTemplate: (dateKey, nom) =>
     set((state) => {
       const jour = state.cahierJournal.jours[dateKey];
@@ -436,6 +487,91 @@ export const useAppStore = create<AppState>((set, get) => ({
       const fichesCache = { ...state.fichesCache };
       delete fichesCache[id];
       return { fichesIndex, fichesCache };
+    });
+  },
+
+  loadSequence: async (id) => {
+    const cached = get().sequencesCache[id];
+    if (cached) return cached;
+    const sequence = await githubSync.readFile<Sequence | null>(PATHS.sequence(id), null);
+    if (sequence) set((state) => ({ sequencesCache: { ...state.sequencesCache, [id]: sequence } }));
+    return sequence;
+  },
+
+  creerSequence: async (partial) => {
+    const now = new Date().toISOString();
+    const sequence: Sequence = {
+      id: uuid(),
+      titre: partial.titre ?? 'Nouvelle séquence',
+      cycle: partial.cycle ?? 'Cycle 2',
+      niveau: partial.niveau ?? 'CE1',
+      domaine: partial.domaine ?? '',
+      objectifGeneral: partial.objectifGeneral ?? '',
+      connaissancesReactivees: partial.connaissancesReactivees ?? '',
+      seances: partial.seances ?? [],
+      evaluationDescriptif: partial.evaluationDescriptif ?? '',
+      createdAt: now,
+      updatedAt: now,
+    };
+    githubSync.queueWrite(PATHS.sequence(sequence.id), sequence);
+    set((state) => {
+      const sequencesIndex: SequencesIndex = {
+        sequences: [
+          ...state.sequencesIndex.sequences,
+          {
+            id: sequence.id,
+            titre: sequence.titre,
+            domaine: sequence.domaine,
+            niveau: sequence.niveau,
+            nombreSeances: sequence.seances.length,
+            updatedAt: sequence.updatedAt,
+          },
+        ],
+      };
+      githubSync.queueWrite(PATHS.sequencesIndex, sequencesIndex);
+      return {
+        sequencesIndex,
+        sequencesCache: { ...state.sequencesCache, [sequence.id]: sequence },
+      };
+    });
+    return sequence;
+  },
+
+  updateSequence: async (id, patch) => {
+    const current = get().sequencesCache[id] ?? (await get().loadSequence(id));
+    if (!current) return;
+    const updated: Sequence = { ...current, ...patch, updatedAt: new Date().toISOString() };
+    githubSync.queueWrite(PATHS.sequence(id), updated);
+    set((s) => {
+      const sequencesIndex: SequencesIndex = {
+        sequences: s.sequencesIndex.sequences.map((seq) =>
+          seq.id === id
+            ? {
+                ...seq,
+                titre: updated.titre,
+                domaine: updated.domaine,
+                niveau: updated.niveau,
+                nombreSeances: updated.seances.length,
+                updatedAt: updated.updatedAt,
+              }
+            : seq,
+        ),
+      };
+      githubSync.queueWrite(PATHS.sequencesIndex, sequencesIndex);
+      return {
+        sequencesIndex,
+        sequencesCache: { ...s.sequencesCache, [id]: updated },
+      };
+    });
+  },
+
+  deleteSequence: async (id) => {
+    set((state) => {
+      const sequencesIndex = { sequences: state.sequencesIndex.sequences.filter((s) => s.id !== id) };
+      githubSync.queueWrite(PATHS.sequencesIndex, sequencesIndex);
+      const sequencesCache = { ...state.sequencesCache };
+      delete sequencesCache[id];
+      return { sequencesIndex, sequencesCache };
     });
   },
 

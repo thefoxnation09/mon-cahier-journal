@@ -10,6 +10,8 @@ import { JournalJourPage } from './pages/JournalJourPage';
 import { JournalSemainePage } from './pages/JournalSemainePage';
 import { FichesListPage } from './pages/FichesListPage';
 import { FichePrepPage } from './pages/FichePrepPage';
+import { SequencesListPage } from './pages/SequencesListPage';
+import { SequencePage } from './pages/SequencePage';
 import { RituelsPage } from './pages/RituelsPage';
 import { ProjectionPage } from './pages/ProjectionPage';
 import { ImpressionsPage } from './pages/ImpressionsPage';
@@ -56,6 +58,8 @@ function App() {
           <Route path="/journal/semaine/:date" element={<JournalSemainePage />} />
           <Route path="/fiches" element={<FichesListPage />} />
           <Route path="/fiches/:id" element={<FichePrepPage />} />
+          <Route path="/sequences" element={<SequencesListPage />} />
+          <Route path="/sequences/:id" element={<SequencePage />} />
           <Route path="/rituels" element={<RituelsPage />} />
           <Route path="/impressions/:date" element={<ImpressionsPage />} />
           <Route path="/reglages" element={<ReglagesPage />} />

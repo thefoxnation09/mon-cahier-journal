@@ -34,6 +34,10 @@ function base64ToUtf8(b64: string): string {
   return new TextDecoder().decode(bytes);
 }
 
+function encodePath(path: string): string {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
+
 class GitHubSyncService {
   private dbPromise: Promise<IDBPDatabase>;
   private timers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -171,7 +175,7 @@ class GitHubSyncService {
     if (!cfg) return null;
     try {
       const res = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}?ref=${cfg.branch || DEFAULT_BRANCH}`,
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}?ref=${cfg.branch || DEFAULT_BRANCH}`,
         { headers: this.headers(cfg) },
       );
       if (res.status === 404) return null;
@@ -242,7 +246,7 @@ class GitHubSyncService {
       if (cached.sha) body.sha = cached.sha;
 
       const res = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`,
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}`,
         {
           method: 'PUT',
           headers: this.headers(cfg),
@@ -316,6 +320,80 @@ class GitHubSyncService {
       'X-GitHub-Api-Version': '2022-11-28',
       'Content-Type': 'application/json',
     };
+  }
+
+  // --- Fichiers binaires (PDF à imprimer) -------------------------------------
+
+  /** Dépose un fichier (contenu déjà encodé en base64, sans préfixe data:) dans le dépôt de données. */
+  async putBinaryFile(
+    path: string,
+    base64Content: string,
+    message: string,
+  ): Promise<{ ok: boolean; error?: string }> {
+    const cfg = this.getConfig();
+    if (!cfg) return { ok: false, error: "GitHub n'est pas connecté." };
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}`,
+        {
+          method: 'PUT',
+          headers: this.headers(cfg),
+          body: JSON.stringify({ message, content: base64Content, branch: cfg.branch || DEFAULT_BRANCH }),
+        },
+      );
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        return { ok: false, error: `Échec de l'envoi du fichier (${res.status}) ${text}` };
+      }
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Hors ligne, réessayez plus tard.' };
+    }
+  }
+
+  /** Récupère un fichier binaire du dépôt et retourne une URL de blob local utilisable dans <a>/<iframe>. */
+  async getBinaryFileUrl(path: string, mimeType = 'application/pdf'): Promise<string | null> {
+    const cfg = this.getConfig();
+    if (!cfg) return null;
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}?ref=${cfg.branch || DEFAULT_BRANCH}`,
+        { headers: this.headers(cfg) },
+      );
+      if (!res.ok) return null;
+      const json = await res.json();
+      const binary = atob((json.content as string).replace(/\n/g, ''));
+      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: mimeType });
+      return URL.createObjectURL(blob);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Supprime un fichier binaire du dépôt de données. */
+  async deleteBinaryFile(path: string, message: string): Promise<boolean> {
+    const cfg = this.getConfig();
+    if (!cfg) return false;
+    try {
+      const getRes = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}?ref=${cfg.branch || DEFAULT_BRANCH}`,
+        { headers: this.headers(cfg) },
+      );
+      if (!getRes.ok) return false;
+      const json = await getRes.json();
+      const delRes = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}`,
+        {
+          method: 'DELETE',
+          headers: this.headers(cfg),
+          body: JSON.stringify({ message, sha: json.sha, branch: cfg.branch || DEFAULT_BRANCH }),
+        },
+      );
+      return delRes.ok;
+    } catch {
+      return false;
+    }
   }
 }
 

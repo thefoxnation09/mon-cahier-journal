@@ -3,34 +3,45 @@
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  --color-cream-50: #fdfbf7;
-  --color-cream-100: #f9f4ea;
+  /* Fond général : violet pastel clair */
+  --color-cream-50: #f4f0fb;
+  --color-cream-100: #ece3f8;
 
-  --color-ink-900: #24222b;
-  --color-ink-700: #4a4753;
-  --color-ink-500: #726f7c;
+  --color-ink-900: #302b45;
+  --color-ink-700: #5b5470;
+  --color-ink-500: #8a839c;
 
-  --color-brand-50: #f1f5ff;
-  --color-brand-100: #e1eaff;
-  --color-brand-200: #c3d5ff;
-  --color-brand-400: #7a9cf5;
-  --color-brand-500: #5a80e8;
-  --color-brand-600: #4166cf;
-  --color-brand-700: #3552a8;
+  /* Accent principal : violet pastel */
+  --color-brand-50: #f4f1fd;
+  --color-brand-100: #e6ddf9;
+  --color-brand-200: #d1c0f2;
+  --color-brand-400: #ac8fe4;
+  --color-brand-500: #9575d8;
+  --color-brand-600: #8160c7;
+  --color-brand-700: #6a4da8;
 
-  --color-sun-100: #fef3c7;
-  --color-sun-400: #fbbf24;
-  --color-sun-500: #f59e0b;
+  /* Jaune pastel */
+  --color-sun-100: #fbedd0;
+  --color-sun-400: #f0c789;
+  --color-sun-500: #e6ac5c;
 
-  --color-leaf-50: #f0fdf4;
-  --color-leaf-100: #dcfce7;
-  --color-leaf-500: #22c55e;
-  --color-leaf-600: #16a34a;
+  /* Vert pastel */
+  --color-leaf-50: #eaf7ef;
+  --color-leaf-100: #d6f0e0;
+  --color-leaf-500: #74c093;
+  --color-leaf-600: #55a377;
 
-  --color-coral-50: #fff1f0;
-  --color-coral-100: #ffe1de;
-  --color-coral-500: #f2665c;
-  --color-coral-600: #dd4f45;
+  /* Rose pastel */
+  --color-coral-50: #fbecf1;
+  --color-coral-100: #f7d9e4;
+  --color-coral-500: #e592ab;
+  --color-coral-600: #d1738f;
+
+  /* Bleu pastel (utilisé pour certaines matières / accents) */
+  --color-sky-50: #eaf3fb;
+  --color-sky-100: #d5e7f7;
+  --color-sky-500: #7fb2e0;
+  --color-sky-600: #5f97cc;
 }
 
 html {

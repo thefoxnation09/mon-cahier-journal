@@ -33,8 +33,10 @@ export function FichePrepPage() {
       id: uuid(),
       titre: '',
       duree: 10,
+      deroulement: '',
       consigneEnseignant: '',
       activiteEleve: '',
+      materiel: '',
       modalite: 'collectif',
     };
     patch({ etapes: [...current.etapes, etape] });
@@ -183,20 +185,48 @@ export function FichePrepPage() {
                   <Trash2 size={13} />
                 </button>
               </div>
-              <div className="grid sm:grid-cols-2 gap-2">
+
+              <div className="mb-2">
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-ink-500">Déroulement</label>
                 <textarea
-                  value={etape.consigneEnseignant}
-                  onChange={(e) => updateEtape(etape.id, { consigneEnseignant: e.target.value })}
-                  placeholder="Consigne enseignant"
+                  value={etape.deroulement ?? ''}
+                  onChange={(e) => updateEtape(etape.id, { deroulement: e.target.value })}
+                  placeholder="Contenu de l'activité (calculs, consignes précises, exemples…)"
                   rows={2}
-                  className="w-full text-xs border border-ink-500/10 rounded px-2 py-1"
+                  className="w-full text-xs border border-ink-500/10 rounded px-2 py-1 mt-0.5"
                 />
-                <textarea
-                  value={etape.activiteEleve}
-                  onChange={(e) => updateEtape(etape.id, { activiteEleve: e.target.value })}
-                  placeholder="Activité élève"
-                  rows={2}
-                  className="w-full text-xs border border-ink-500/10 rounded px-2 py-1"
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wide text-ink-500">Rôle du maître</label>
+                  <textarea
+                    value={etape.consigneEnseignant}
+                    onChange={(e) => updateEtape(etape.id, { consigneEnseignant: e.target.value })}
+                    placeholder="Consigne, étayage, guidage…"
+                    rows={2}
+                    className="w-full text-xs border border-ink-500/10 rounded px-2 py-1 mt-0.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wide text-ink-500">Rôle de l'élève</label>
+                  <textarea
+                    value={etape.activiteEleve}
+                    onChange={(e) => updateEtape(etape.id, { activiteEleve: e.target.value })}
+                    placeholder="Ce que fait l'élève…"
+                    rows={2}
+                    className="w-full text-xs border border-ink-500/10 rounded px-2 py-1 mt-0.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-ink-500">Matériel</label>
+                <input
+                  value={etape.materiel ?? ''}
+                  onChange={(e) => updateEtape(etape.id, { materiel: e.target.value })}
+                  placeholder="Ardoise, craie, cahier…"
+                  className="w-full text-xs border border-ink-500/10 rounded px-2 py-1 mt-0.5"
                 />
               </div>
             </div>
@@ -204,12 +234,45 @@ export function FichePrepPage() {
         </div>
       </div>
 
+      <div className="grid sm:grid-cols-3 gap-3 mb-6">
+        <div>
+          <label className="text-xs font-medium text-ink-500">Observations</label>
+          <textarea
+            value={current.observations ?? ''}
+            onChange={(e) => patch({ observations: e.target.value })}
+            rows={3}
+            className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1"
+            placeholder="Ce qui a été observé pendant la séance…"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-ink-500">Prolongement(s) possible(s)</label>
+          <textarea
+            value={current.prolongements ?? ''}
+            onChange={(e) => patch({ prolongements: e.target.value })}
+            rows={3}
+            className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1"
+            placeholder="Réinvestissement, jeux, aller plus loin…"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-ink-500">Remédiation(s) éventuelle(s)</label>
+          <textarea
+            value={current.remediation ?? ''}
+            onChange={(e) => patch({ remediation: e.target.value })}
+            rows={3}
+            className="w-full text-sm border border-ink-500/10 rounded-lg px-2 py-1.5 mt-1"
+            placeholder="Atelier dirigé, reprise en groupe restreint…"
+          />
+        </div>
+      </div>
+
       <div>
-        <label className="text-xs font-medium text-ink-500 mb-1 block">Notes complémentaires / différenciation</label>
+        <label className="text-xs font-medium text-ink-500 mb-1 block">Notes libres</label>
         <RichTextEditor
           value={current.contenuHtml}
           onChange={(html) => patch({ contenuHtml: html })}
-          placeholder="Différenciation, remédiation, prolongements…"
+          placeholder="Toute information complémentaire utile…"
         />
       </div>
     </div>
