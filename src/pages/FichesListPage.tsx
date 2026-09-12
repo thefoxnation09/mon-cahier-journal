@@ -29,6 +29,8 @@ export function FichesListPage() {
       materiel: gabarit.materiel,
       duree: gabarit.duree,
       etapes: gabarit.etapes.map((e) => ({ ...e, id: crypto.randomUUID() })),
+      prolongements: gabarit.prolongements,
+      remediation: gabarit.remediation,
     });
     setShowGabarits(false);
     navigate(`/fiches/${fiche.id}`);

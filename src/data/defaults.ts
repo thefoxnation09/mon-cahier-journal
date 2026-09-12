@@ -3,8 +3,10 @@ import type {
   EmploiDuTemps,
   GabaritFiche,
   GabaritSequence,
+  Rituel,
   RituelsConfig,
   TemplatesData,
+  TypeRituel,
 } from '../types';
 
 export const MATIERES_DEFAUT = [
@@ -64,34 +66,56 @@ export function templatesParDefaut(): TemplatesData {
   return { templates: [] };
 }
 
+// Liste de référence des rituels fournis par l'application. Sert à la fois à
+// générer la config initiale et à compléter automatiquement les rituels
+// nouvellement ajoutés (mises à jour de l'appli) chez les utilisateurs qui
+// ont déjà une configuration existante dans leur dépôt.
+const RITUELS_BASE: { type: TypeRituel; titre: string; actif: boolean }[] = [
+  { type: 'date', titre: 'La date', actif: true },
+  { type: 'chaque_jour_compte', titre: 'Chaque jour compte', actif: true },
+  { type: 'calcul_mental', titre: 'Calcul mental', actif: true },
+  { type: 'mot_du_jour', titre: 'Le mot du jour', actif: true },
+  { type: 'meteo', titre: 'La météo', actif: false },
+  { type: 'devinette', titre: 'La devinette du jour', actif: true },
+];
+
 export function rituelsParDefaut(): RituelsConfig {
   const today = new Date();
   const rentree = new Date(today.getFullYear() - (today.getMonth() < 7 ? 1 : 0), 8, 1);
   return {
     dateDebutAnnee: rentree.toISOString().slice(0, 10),
     effectifClasse: 24,
-    rituels: [
-      { id: uuid(), type: 'date', titre: 'La date', ordre: 0, actif: true },
-      {
-        id: uuid(),
-        type: 'chaque_jour_compte',
-        titre: 'Chaque jour compte',
-        ordre: 1,
-        actif: true,
-      },
-      {
-        id: uuid(),
-        type: 'calcul_mental',
-        titre: 'Calcul mental',
-        contenu: '',
-        ordre: 2,
-        actif: true,
-      },
-      { id: uuid(), type: 'mot_du_jour', titre: 'Le mot du jour', contenu: '', ordre: 3, actif: true },
-      { id: uuid(), type: 'meteo', titre: 'La météo', ordre: 4, actif: false },
-      { id: uuid(), type: 'devinette', titre: 'La devinette du jour', ordre: 5, actif: true },
-    ],
+    rituels: RITUELS_BASE.map((r, ordre) => ({
+      id: uuid(),
+      type: r.type,
+      titre: r.titre,
+      contenu: '',
+      ordre,
+      actif: r.actif,
+    })),
   };
+}
+
+/**
+ * Ajoute à une config déjà existante les rituels de base qui n'y figurent
+ * pas encore (ex : un rituel introduit par une mise à jour de l'appli après
+ * que l'utilisateur a déjà généré sa configuration). Ne modifie ni ne
+ * supprime jamais les rituels déjà présents.
+ */
+export function completerRituelsManquants(config: RituelsConfig): RituelsConfig {
+  const typesExistants = new Set(config.rituels.map((r) => r.type));
+  const manquants = RITUELS_BASE.filter((r) => !typesExistants.has(r.type));
+  if (manquants.length === 0) return config;
+  const ordreDepart = config.rituels.length;
+  const nouveaux: Rituel[] = manquants.map((r, i) => ({
+    id: uuid(),
+    type: r.type,
+    titre: r.titre,
+    contenu: '',
+    ordre: ordreDepart + i,
+    actif: r.actif,
+  }));
+  return { ...config, rituels: [...config.rituels, ...nouveaux] };
 }
 
 export interface Devinette {
@@ -284,6 +308,53 @@ export const GABARITS_FICHES: GabaritFiche[] = [
         modalite: 'individuel',
       },
     ],
+  },
+  {
+    id: 'calcul-mental-ce1',
+    nom: 'Mathématiques — Calcul mental',
+    domaine: 'Mathématiques',
+    competences: ['Calcul mental : compléments, doubles, encadrement de nombres'],
+    objectifs: 'Automatiser la dictée de nombres et l\'encadrement, les compléments à 10, les doubles.',
+    materiel: 'Ardoise, craie, chiffon, cartes flash',
+    duree: 15,
+    etapes: [
+      {
+        titre: 'Dictée de nombres & encadrement',
+        duree: 5,
+        deroulement:
+          "Dictée de nombres et encadrement (nombre avant/après) : 31 < 32 < 33 · 44 < 45 < 46 · 78 < 79 < 80 · 84 < 85 < 86 · 68 < 69 < 70.\nDifférenciation envisagée : proposer une bande numérique/file numérique sur la table pour les élèves ayant des difficultés de repérage.",
+        consigneEnseignant:
+          "Montre les nombres avec les doigts, guide l'activité et valide les réponses affichées sur l'ardoise.",
+        activiteEleve:
+          "Écrit le nombre déchiffré, puis son prédécesseur et enfin son successeur, sur l'ardoise un par un.",
+        materiel: 'Ardoise, craie, chiffon',
+        modalite: 'collectif',
+      },
+      {
+        titre: 'Additions à 3 termes (compléments à 10)',
+        duree: 6,
+        deroulement:
+          "Calcul d'additions du type a + b + c en repérant d'abord les compléments à 10 : 3+5+7=15 · 8+4+2=14 · 6+3+4=13 · 5+3+5=13 · 3+6+3=12.\nDifférenciation envisagée : entourer visuellement au tableau les deux nombres dont la somme fait 10.",
+        consigneEnseignant:
+          "Écrit les calculs au tableau, rappelle la stratégie du complément à 10 et observe les démarches des élèves.",
+        activiteEleve:
+          "Cherche les groupements par 10 pour calculer plus vite, écrit le résultat sur l'ardoise et lève au signal.",
+        materiel: 'Ardoise, tableau',
+        modalite: 'individuel',
+      },
+      {
+        titre: 'Les doubles (si le temps)',
+        duree: 4,
+        deroulement: 'Calcul rapide des doubles : 3+3=6 · 6+6=12 · 8+8=16 · 9+9=18.',
+        consigneEnseignant: 'Énonce les additions de doubles.',
+        activiteEleve: "Restitue de mémoire le résultat du double le plus rapidement possible sur l'ardoise.",
+        materiel: 'Ardoise, cartes flash',
+        modalite: 'individuel',
+      },
+    ],
+    prolongements: 'Réinvestissement dans des petits problèmes oraux / Jeux de cartes sur les compléments à 10 et les doubles.',
+    remediation:
+      "Atelier dirigé en groupe restreint pour revoir la décomposition du nombre 10 et l'automatisation des doubles jusqu'à 10+10.",
   },
 ];
 

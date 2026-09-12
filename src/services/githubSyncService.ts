@@ -333,12 +333,27 @@ class GitHubSyncService {
     const cfg = this.getConfig();
     if (!cfg) return { ok: false, error: "GitHub n'est pas connecté." };
     try {
+      // Un fichier peut déjà exister au même chemin (remplacement) : GitHub exige
+      // alors son sha actuel, sans quoi la requête échoue avec un conflit 409/422.
+      const existant = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}?ref=${cfg.branch || DEFAULT_BRANCH}`,
+        { headers: this.headers(cfg) },
+      );
+      const sha = existant.ok ? ((await existant.json()).sha as string) : undefined;
+
+      const body: Record<string, unknown> = {
+        message,
+        content: base64Content,
+        branch: cfg.branch || DEFAULT_BRANCH,
+      };
+      if (sha) body.sha = sha;
+
       const res = await fetch(
         `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodePath(path)}`,
         {
           method: 'PUT',
           headers: this.headers(cfg),
-          body: JSON.stringify({ message, content: base64Content, branch: cfg.branch || DEFAULT_BRANCH }),
+          body: JSON.stringify(body),
         },
       );
       if (!res.ok) {

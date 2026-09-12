@@ -54,6 +54,7 @@ export function JournalSemainePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 mb-1">Cahier journal</p>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <button

@@ -114,8 +114,11 @@ body {
   }
 
   html,
-  body {
+  body,
+  #root,
+  .bg-cream-50 {
     background: #fff !important;
+    background-image: none !important;
   }
 
   .no-print {
@@ -129,6 +132,7 @@ body {
     max-width: 100%;
     margin: 0;
     padding: 0;
+    background: #fff !important;
     box-shadow: none !important;
   }
 

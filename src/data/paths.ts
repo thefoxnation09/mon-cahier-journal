@@ -9,4 +9,5 @@ export const PATHS = {
   sequence: (id: string) => `data/sequences/${id}.json`,
   impressionFichier: (dateKey: string, seanceId: string, impressionId: string, nomFichier: string) =>
     `data/impressions/${dateKey}/${seanceId}-${impressionId}-${nomFichier}`,
+  fichePdf: (ficheId: string, nomFichier: string) => `data/fiches-prep/pdf/${ficheId}-${nomFichier}`,
 };

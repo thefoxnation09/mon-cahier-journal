@@ -104,6 +104,7 @@ export function JournalJourPage() {
         </div>
       </div>
 
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 mb-1">Cahier journal</p>
       <h1 className="text-xl font-semibold text-ink-900 mb-6">{formatLong(date)}</h1>
 
       <div className="space-y-3">

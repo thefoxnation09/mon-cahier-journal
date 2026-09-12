@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { ArrowLeft, Plus, Printer, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { RichTextEditor } from '../components/RichTextEditor';
+import { PdfDropZone } from '../components/PdfDropZone';
 import { MODALITES, type EtapeFiche, type FichePrep, type ModaliteTravail } from '../types';
 
 export function FichePrepPage() {
@@ -11,6 +12,9 @@ export function FichePrepPage() {
   const navigate = useNavigate();
   const loadFiche = useAppStore((s) => s.loadFiche);
   const updateFiche = useAppStore((s) => s.updateFiche);
+  const uploadFichePdf = useAppStore((s) => s.uploadFichePdf);
+  const removeFichePdf = useAppStore((s) => s.removeFichePdf);
+  const getImpressionFileUrl = useAppStore((s) => s.getImpressionFileUrl);
   const cached = useAppStore((s) => (id ? s.fichesCache[id] : undefined));
 
   useEffect(() => {
@@ -75,6 +79,16 @@ export function FichePrepPage() {
         placeholder="Titre de la fiche"
         className="w-full text-2xl font-semibold text-ink-900 focus:outline-none bg-transparent mb-4"
       />
+
+      <div className="mb-4 max-w-sm">
+        <label className="text-xs font-medium text-ink-500 mb-1 block">Document PDF associé (exercices, support…)</label>
+        <PdfDropZone
+          nomFichier={current.nomFichierPdf}
+          onUpload={(file) => uploadFichePdf(id!, file)}
+          onRemove={() => removeFichePdf(id!)}
+          onView={() => getImpressionFileUrl(current.cheminFichierPdf ?? '')}
+        />
+      </div>
 
       <div className="grid sm:grid-cols-4 gap-3 mb-4">
         <div>

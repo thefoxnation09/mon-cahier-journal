@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { githubSync } from '../services/githubSyncService';
 import { PATHS } from '../data/paths';
 import {
+  completerRituelsManquants,
   emploiDuTempsParDefaut,
   rituelsParDefaut,
   templatesParDefaut,
@@ -90,6 +91,8 @@ interface AppState {
   creerFiche: (partial: Partial<FichePrep>) => Promise<FichePrep>;
   updateFiche: (id: string, patch: Partial<FichePrep>) => Promise<void>;
   deleteFiche: (id: string) => Promise<void>;
+  uploadFichePdf: (id: string, file: File) => Promise<{ ok: boolean; error?: string }>;
+  removeFichePdf: (id: string) => Promise<void>;
 
   // Séquences
   loadSequence: (id: string) => Promise<Sequence | null>;
@@ -135,14 +138,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   init: async () => {
     githubSync.onStateChange((s) => set({ syncState: s }));
 
-    const [edt, templates, cahier, rituels, fichesIndex, sequencesIndex] = await Promise.all([
+    function surRituelsMisAJour(d: RituelsConfig) {
+      const complet = completerRituelsManquants(d);
+      set({ rituelsConfig: complet });
+      if (complet !== d) githubSync.queueWrite(PATHS.rituels, complet);
+    }
+
+    const [edt, templates, cahier, rituelsBruts, fichesIndex, sequencesIndex] = await Promise.all([
       githubSync.readFile(PATHS.emploiDuTemps, emploiDuTempsParDefaut(), (d) => set({ emploiDuTemps: d })),
       githubSync.readFile(PATHS.templates, templatesParDefaut(), (d) => set({ templates: d })),
       githubSync.readFile(PATHS.cahierJournal, { jours: {} } as CahierJournal, (d) => set({ cahierJournal: d })),
-      githubSync.readFile(PATHS.rituels, rituelsParDefaut(), (d) => set({ rituelsConfig: d })),
+      githubSync.readFile(PATHS.rituels, rituelsParDefaut(), surRituelsMisAJour),
       githubSync.readFile(PATHS.fichesIndex, { fiches: [] } as FichesIndex, (d) => set({ fichesIndex: d })),
       githubSync.readFile(PATHS.sequencesIndex, { sequences: [] } as SequencesIndex, (d) => set({ sequencesIndex: d })),
     ]);
+
+    const rituels = completerRituelsManquants(rituelsBruts);
+    if (rituels !== rituelsBruts) githubSync.queueWrite(PATHS.rituels, rituels);
 
     set({
       emploiDuTemps: edt,
@@ -428,8 +440,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       duree: partial.duree ?? 45,
       seanceId: partial.seanceId,
       jourDate: partial.jourDate,
+      sequenceId: partial.sequenceId,
       contenuHtml: partial.contenuHtml ?? '',
       etapes: partial.etapes ?? [],
+      observations: partial.observations,
+      prolongements: partial.prolongements,
+      remediation: partial.remediation,
       createdAt: now,
       updatedAt: now,
     };
@@ -488,6 +504,24 @@ export const useAppStore = create<AppState>((set, get) => ({
       delete fichesCache[id];
       return { fichesIndex, fichesCache };
     });
+  },
+
+  uploadFichePdf: async (id, file) => {
+    const nomFichier = slugifyFilename(file.name);
+    const cheminFichierPdf = PATHS.fichePdf(id, nomFichier);
+    const base64 = await fileToBase64(file);
+    const result = await githubSync.putBinaryFile(cheminFichierPdf, base64, `chore: ajout du document ${nomFichier}`);
+    if (result.ok) {
+      await get().updateFiche(id, { cheminFichierPdf, nomFichierPdf: file.name });
+    }
+    return result;
+  },
+
+  removeFichePdf: async (id) => {
+    const fiche = get().fichesCache[id] ?? (await get().loadFiche(id));
+    if (!fiche?.cheminFichierPdf) return;
+    await githubSync.deleteBinaryFile(fiche.cheminFichierPdf, `chore: suppression du document ${fiche.nomFichierPdf ?? ''}`);
+    await get().updateFiche(id, { cheminFichierPdf: undefined, nomFichierPdf: undefined });
   },
 
   loadSequence: async (id) => {

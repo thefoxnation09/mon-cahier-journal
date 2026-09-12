@@ -127,6 +127,8 @@ export interface FichePrep {
   observations?: string;
   prolongements?: string;
   remediation?: string;
+  cheminFichierPdf?: string;
+  nomFichierPdf?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -154,6 +156,8 @@ export interface GabaritFiche {
   materiel: string;
   duree: number;
   etapes: Array<Omit<EtapeFiche, 'id'>>;
+  prolongements?: string;
+  remediation?: string;
 }
 
 // ---------------------------------------------------------------------------
