@@ -255,10 +255,16 @@ class GitHubSyncService {
       );
 
       if (res.status === 409 || res.status === 422) {
-        if (attempt < 1) {
+        if (attempt < 2) {
           const remote = await this.fetchRemote(path);
-          await this.setCached(path, cached.data, remote?.sha ?? null, true);
+          // Si le nouveau sha n'a pas pu être récupéré (réseau, latence...), ne
+          // jamais retomber sur `null` alors qu'un sha connu existait déjà : ce
+          // serait transformer une simple mise à jour en tentative de création,
+          // qui échouerait à nouveau à coup sûr avec la même erreur.
+          const shaPourRetry = remote?.sha ?? cached.sha ?? null;
+          await this.setCached(path, cached.data, shaPourRetry, true);
           this.inFlight.delete(path);
+          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
           return this.flush(path, attempt + 1);
         }
         this.setState({ status: 'error', error: 'Conflit de synchronisation.' });
@@ -329,6 +335,7 @@ class GitHubSyncService {
     path: string,
     base64Content: string,
     message: string,
+    attempt = 0,
   ): Promise<{ ok: boolean; error?: string }> {
     const cfg = this.getConfig();
     if (!cfg) return { ok: false, error: "GitHub n'est pas connecté." };
@@ -356,6 +363,13 @@ class GitHubSyncService {
           body: JSON.stringify(body),
         },
       );
+      if (res.status === 409 || res.status === 422) {
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+          return this.putBinaryFile(path, base64Content, message, attempt + 1);
+        }
+        return { ok: false, error: 'Conflit de synchronisation, réessayez.' };
+      }
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         return { ok: false, error: `Échec de l'envoi du fichier (${res.status}) ${text}` };

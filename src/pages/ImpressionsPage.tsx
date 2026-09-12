@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Printer, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, FileText, Printer, Users } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { formatLong, prochainJourOuvre, jourOuvrePrecedent, toDateKey } from '../lib/dates';
 import type { ImpressionItem, TypeImpression } from '../types';
@@ -24,12 +24,30 @@ export function ImpressionsPage() {
   const effectif = useAppStore((s) => s.rituelsConfig.effectifClasse);
   const toggleImpression = useAppStore((s) => s.toggleImpression);
   const ready = useAppStore((s) => s.ready);
+  const fichesCache = useAppStore((s) => s.fichesCache);
+  const loadFiche = useAppStore((s) => s.loadFiche);
+  const getImpressionFileUrl = useAppStore((s) => s.getImpressionFileUrl);
+  const [fichesVues, setFichesVues] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (ready) ensureJourGenere(dateKey);
   }, [ready, dateKey, ensureJourGenere]);
 
   const jour = cahierJournal.jours[dateKey] ?? { date: dateKey, seances: [] };
+
+  useEffect(() => {
+    jour.seances.forEach((s) => {
+      if (s.fichePrepId && !fichesCache[s.fichePrepId]) void loadFiche(s.fichePrepId);
+    });
+  }, [jour.seances, fichesCache, loadFiche]);
+
+  const documentsDeFiches = jour.seances
+    .map((s) => ({
+      seance: s,
+      fiche: s.fichePrepId ? fichesCache[s.fichePrepId] : undefined,
+      matiere: emploiDuTemps.matieres.find((m) => m.id === s.matiereId),
+    }))
+    .filter((x): x is typeof x & { fiche: NonNullable<typeof x.fiche> } => !!x.fiche?.cheminFichierPdf);
 
   function copiesRequises(imp: ImpressionItem): number {
     if (imp.nbExemplaires) return imp.nbExemplaires;
@@ -42,7 +60,22 @@ export function ImpressionsPage() {
   const items = jour.seances.flatMap((s) =>
     s.impressions.map((imp) => ({ imp, seance: s, matiere: emploiDuTemps.matieres.find((m) => m.id === s.matiereId) })),
   );
-  const restants = items.filter((i) => !i.imp.coche).length;
+  const totalDocuments = items.length + documentsDeFiches.length;
+  const restants = items.filter((i) => !i.imp.coche).length + documentsDeFiches.filter((d) => !fichesVues.has(d.fiche.id)).length;
+
+  function toggleFicheVue(ficheId: string) {
+    setFichesVues((prev) => {
+      const next = new Set(prev);
+      if (next.has(ficheId)) next.delete(ficheId);
+      else next.add(ficheId);
+      return next;
+    });
+  }
+
+  async function voirFichePdf(cheminFichierPdf: string) {
+    const url = await getImpressionFileUrl(cheminFichierPdf);
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 print-area">
@@ -83,11 +116,11 @@ export function ImpressionsPage() {
           <Users size={15} /> {effectif} élèves · {Math.ceil(effectif / 2)} binômes
         </span>
         <span className="text-ink-500">
-          {items.length === 0 ? 'Aucun document' : `${restants} / ${items.length} document(s) restant(s)`}
+          {totalDocuments === 0 ? 'Aucun document' : `${restants} / ${totalDocuments} document(s) restant(s)`}
         </span>
       </div>
 
-      {items.length === 0 && (
+      {totalDocuments === 0 && (
         <p className="text-sm text-ink-500 italic">Aucun document à imprimer pour cette journée.</p>
       )}
 
@@ -118,6 +151,42 @@ export function ImpressionsPage() {
             <span className="text-xs font-semibold text-ink-700 bg-ink-500/5 rounded-full px-2 py-0.5 shrink-0">
               × {copiesRequises(imp)}
             </span>
+          </label>
+        ))}
+
+        {documentsDeFiches.map(({ fiche, matiere }) => (
+          <label
+            key={fiche.id}
+            className={`flex items-center gap-3 bg-white border rounded-xl px-4 py-3 cursor-pointer ${
+              fichesVues.has(fiche.id) ? 'border-leaf-200 bg-leaf-50/40' : 'border-ink-500/10'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={fichesVues.has(fiche.id)}
+              onChange={() => toggleFicheVue(fiche.id)}
+              className="accent-leaf-500 w-4 h-4 shrink-0"
+            />
+            <span
+              className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+              style={{ backgroundColor: `${matiere?.couleur}22`, color: matiere?.couleur }}
+            >
+              {matiere?.nom}
+            </span>
+            <FileText size={14} className="text-ink-500 shrink-0" />
+            <span className={`flex-1 text-sm font-medium ${fichesVues.has(fiche.id) ? 'line-through text-ink-500' : 'text-ink-900'}`}>
+              {fiche.nomFichierPdf} <span className="text-ink-500 font-normal">(fiche de prep)</span>
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                void voirFichePdf(fiche.cheminFichierPdf!);
+              }}
+              className="no-print p-1.5 text-brand-600 hover:bg-brand-50 rounded-lg shrink-0"
+              title="Voir le PDF"
+            >
+              <Eye size={15} />
+            </button>
           </label>
         ))}
       </div>
