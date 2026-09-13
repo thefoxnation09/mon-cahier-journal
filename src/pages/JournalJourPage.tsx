@@ -14,7 +14,6 @@ export function JournalJourPage() {
   const ensureJourGenere = useAppStore((s) => s.ensureJourGenere);
   const cahierJournal = useAppStore((s) => s.cahierJournal);
   const addSeance = useAppStore((s) => s.addSeance);
-  const setBilanJour = useAppStore((s) => s.setBilanJour);
   const enregistrerJourneeCommeTemplate = useAppStore((s) => s.enregistrerJourneeCommeTemplate);
   const appliquerTemplate = useAppStore((s) => s.appliquerTemplate);
   const templates = useAppStore((s) => s.templates);
@@ -135,17 +134,6 @@ export function JournalJourPage() {
       >
         <Plus size={16} /> Ajouter une séance
       </button>
-
-      <div className="mt-8">
-        <label className="text-sm font-semibold text-ink-900">Bilan du jour</label>
-        <textarea
-          value={jour.bilanJour ?? ''}
-          onChange={(e) => setBilanJour(dateKey, e.target.value)}
-          rows={3}
-          placeholder="Ce qu'il faut retenir de cette journée, ajustements pour la suite…"
-          className="w-full mt-1.5 text-sm border border-ink-500/10 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand-400"
-        />
-      </div>
     </div>
   );
 }

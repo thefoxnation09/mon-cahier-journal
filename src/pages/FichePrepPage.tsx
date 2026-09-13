@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 import { ArrowLeft, Plus, Printer, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import { RichTextEditor } from '../components/RichTextEditor';
 import { PdfDropZone } from '../components/PdfDropZone';
 import { imprimerEnPaysage } from '../lib/print';
 import { MODALITES, type EtapeFiche, type FichePrep, type ModaliteTravail } from '../types';
@@ -342,30 +341,19 @@ export function FichePrepPage() {
         </div>
       </div>
 
-      <table className="hidden print:table print-table">
-        <thead>
-          <tr>
-            <th>Observations</th>
-            <th>Prolongement(s) possible(s)</th>
-            <th>Remédiation(s) éventuelle(s)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{current.observations}</td>
-            <td>{current.prolongements}</td>
-            <td>{current.remediation}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div>
-        <label className="text-xs font-medium text-ink-500 mb-1 block">Notes libres</label>
-        <RichTextEditor
-          value={current.contenuHtml}
-          onChange={(html) => patch({ contenuHtml: html })}
-          placeholder="Toute information complémentaire utile…"
-        />
+      <div className="hidden print:block text-[10.5px] leading-relaxed space-y-3">
+        <div>
+          <p className="font-bold uppercase">Observations :</p>
+          <p className="whitespace-pre-line">{current.observations}</p>
+        </div>
+        <div>
+          <p className="font-bold uppercase">Prolongement(s) possible(s) :</p>
+          <p className="whitespace-pre-line">{current.prolongements}</p>
+        </div>
+        <div>
+          <p className="font-bold uppercase">Remédiation(s) éventuelle(s) :</p>
+          <p className="whitespace-pre-line">{current.remediation}</p>
+        </div>
       </div>
     </div>
   );
