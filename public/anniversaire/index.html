@@ -204,7 +204,8 @@
   .envelope.open { cursor: default; }
   .envelope.open .closed { display: none; }
   .envelope.open .letter { display: block; animation: fadeIn .6s ease; }
-  .letter p { margin: 0 0 12px; }
+  .letter p { margin: 0 0 12px; overflow-wrap: anywhere; }
+  .letter .quote { font-style: italic; font-weight: 500; color: var(--violet-dark); background: linear-gradient(135deg, #f3ecff, var(--bg3)); border-left: 4px solid var(--lilas); border-radius: 12px; padding: 12px 14px; }
   .letter .sign { text-align: right; font-weight: 600; color: var(--violet-dark); margin-top: 14px; }
 
   .replay { font: inherit; background: none; border: none; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 8px; font-size: .95rem; }
@@ -278,12 +279,17 @@ const CONFIG = {
   prenom: "Hanane",
   surnoms: ["Omri", "ma vie", "ma femme", "ma moitié", "mon cœur"],
   signature: "Ton Ronflex 💜",
-  // Texte provisoire : à remplacer par le vrai message
+  // Chaque ligne = un paragraphe. { t: "...", citation: true } = paragraphe mis en valeur.
   lettre: [
-    "Joyeux anniversaire Omri ! 🎂",
-    "Bravo, tu as réussi le contrôle de sécurité de Ronflex et complété toute ta collection Évoli. Mais la vraie collection rare, c'est toi.",
-    "Merci de rendre chaque jour plus doux, plus drôle et plus beau. Tu es ma vie, ma femme, ma moitié et mon cœur.",
-    "Je t'aime fort fort fort.",
+    "Coucou ma vie 🥰🥰💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜",
+    "Salut Hanane, c'est ton 25e anniversaire aujourd'hui, et ça fait bientôt 3 ans que notre histoire a commencé.",
+    "J'aimerais pouvoir t'écrire un message qui ne finit jamais tellement j'ai de choses à te dire 😂 mais on va essayer d'aller droit au but.",
+    "Je t'aime. Ce sont des mots qu'on s'est dits tellement de fois depuis nos débuts, et ils ont toujours autant d'importance pour nous deux, parce que c'est un rappel constant de notre amour et de notre dévotion l'un pour l'autre. C'est pour ça que je veux qu'on se le dise pour toujours.",
+    "Sache que je suis extrêmement fier de la femme que tu deviens jour après jour. Je vois tes efforts, tes difficultés et tout ce que tu fais pour moi. J'aimerais pouvoir te remercier comme il se doit, mais je pense que ça ne sera jamais assez.",
+    "Hanane, j'ai hâte de notre vie à deux. J'ai vraiment envie d'y arriver le plus vite possible, in cha Allah, pour enfin commencer ce dont on rêve depuis maintenant 3 ans.",
+    "Je vais finir par des paroles que je t'avais demandé de retenir. Je te les ressors ici pour que tu t'en souviennes et que tu les gardes bien en tête, ma chérie d'amour 🥰",
+    { t: "« Je te rendrai heureuse, je te le promets 💜💜💜💜💜💜💜💜\nEt moi aussi, je te promets de te rendre heureux 💜💜💜💜💜💜 »", citation: true },
+    "Je t'aime Hanane, bon anniversaire 🥰🥰💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜💜",
   ],
   // ok: true = bonne réponse. img = image affichée sous la question (facultatif).
   // fuyant: true = le bouton s'enfuit quand on essaie de le toucher 😏
@@ -539,7 +545,9 @@ function finale() {
     parade.appendChild(img);
   });
   $("letter").innerHTML =
-    CONFIG.lettre.map((p) => `<p>${escapeHtml(p)}</p>`).join("") +
+    CONFIG.lettre.map((p) => typeof p === "string"
+      ? `<p>${escapeHtml(p)}</p>`
+      : `<p class="quote">${escapeHtml(p.t).replace(/\n/g, "<br>")}</p>`).join("") +
     `<p class="sign">${escapeHtml(CONFIG.signature)}</p>`;
   $("envelope").classList.remove("open");
   startNicknames();
