@@ -142,6 +142,9 @@
   }
   .bubble .who { display: block; font-size: .78rem; font-weight: 600; color: var(--violet); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .6px; }
 
+  .qimg { display: none; width: 120px; margin: -14px auto -4px; filter: drop-shadow(0 6px 8px rgba(91,63,168,.25)); animation: hop 1.6s ease-in-out infinite; }
+  .qimg.on { display: block; }
+  .nick { font-size: 1.1rem; color: var(--rose-dark); font-weight: 600; min-height: 1.5em; transition: opacity .4s; }
   .choices { display: flex; flex-direction: column; gap: 10px; position: relative; }
   .choice {
     font: inherit; font-size: 1.05rem; font-weight: 500; text-align: left;
@@ -224,7 +227,7 @@
   <!-- Accueil -->
   <section class="screen intro active" id="screen-intro">
     <div class="mail">💌</div>
-    <h1 id="intro-title">Tu as reçu un message !</h1>
+    <h1 id="intro-title">Omri, tu as reçu un message !</h1>
     <p>Mais avant de pouvoir le lire, quelqu'un doit vérifier que c'est bien toi…</p>
     <img class="snorlax" src="img/ronflex.webp" alt="Ronflex">
     <span class="pill">🔒 Contrôle de sécurité par Ronflex</span>
@@ -242,6 +245,7 @@
       <img id="host" src="img/ronflex.webp" alt="Ronflex">
       <div class="bubble"><span class="who">Ronflex</span><span id="say"></span></div>
     </div>
+    <img class="qimg" id="qimg" alt="">
     <div class="choices" id="choices"></div>
     <div class="next-wrap" id="next-wrap"></div>
   </section>
@@ -249,6 +253,7 @@
   <!-- Final -->
   <section class="screen final" id="screen-final">
     <h1 id="final-title"></h1>
+    <div class="nick" id="nick"></div>
     <div class="stage">
       <div class="zzz"><span>z</span><span>z</span><span>Z</span></div>
       <img class="snorlax" src="img/ronflex.webp" alt="Ronflex qui dort">
@@ -270,58 +275,88 @@
    À PERSONNALISER 💜
    ===================================================================== */
 const CONFIG = {
-  prenom: "mon amour",
+  prenom: "Hanane",
+  surnoms: ["Omri", "ma vie", "ma femme", "ma moitié", "mon cœur"],
   signature: "Ton Ronflex 💜",
+  // Texte provisoire : à remplacer par le vrai message
   lettre: [
-    "Joyeux anniversaire ! 🎂",
+    "Joyeux anniversaire Omri ! 🎂",
     "Bravo, tu as réussi le contrôle de sécurité de Ronflex et complété toute ta collection Évoli. Mais la vraie collection rare, c'est toi.",
-    "Merci de rendre chaque jour plus doux, plus drôle et plus beau. Tu es ma personne préférée dans tout l'univers Pokémon (et en dehors aussi).",
-    "Je te souhaite une journée aussi mignonne qu'un Évoli, aussi pétillante qu'un Voltali et aussi douce qu'un Nymphali.",
+    "Merci de rendre chaque jour plus doux, plus drôle et plus beau. Tu es ma vie, ma femme, ma moitié et mon cœur.",
     "Je t'aime fort fort fort.",
   ],
-  // ok: true = bonne réponse. Si toutes sont bonnes, chacune affiche sa propre réaction.
+  // ok: true = bonne réponse. img = image affichée sous la question (facultatif).
   // fuyant: true = le bouton s'enfuit quand on essaie de le toucher 😏
   questions: [
     {
-      q: "Question de sécurité n°1 : qui est le plus beau mari du monde ?",
+      q: "Question de sécurité n°1 : quel jour s'est-on rencontrés ?",
       choix: [
-        { t: "Brad Pitt", r: "Brad Pitt ?! Il ne sait même pas ce qu'est un Ronflex. Réessaie." },
-        { t: "Le facteur", r: "LE FACTEUR ?! Ronflex est très vexé. 😤" },
-        { t: "Ronflex, évidemment 😎", ok: true, r: "Bonne réponse. Ronflex savait que c'était toi. 💜" },
+        { t: "Le 14 février 💘", r: "Trop cliché pour nous ! Réessaie." },
+        { t: "Le 26 février", r: "Presque… ça c'est le jour où on s'est mis ensemble !" },
+        { t: "Le 26 octobre 🍂", ok: true, r: "Bonne réponse ! Le meilleur jour de la vie de Ronflex. 💜" },
+        { t: "Le 1er avril", r: "Ce n'était pas une blague, voyons ! 😤" },
+      ],
+    },
+    {
+      q: "Et quel jour s'est-on mis ensemble ?",
+      choix: [
+        { t: "Le 26 octobre", r: "Ça, c'est notre rencontre ! Ronflex a pris son temps, mais quand même." },
+        { t: "Le 29 février", r: "Une date qui n'existe qu'une année sur quatre ? Ronflex est vexé. 😤" },
+        { t: "Le 26 février 💞", ok: true, r: "Bonne réponse ! Le jour où Ronflex a gagné le gros lot." },
+      ],
+    },
+    {
+      q: "Où était notre tout premier date ?",
+      choix: [
+        { t: "Dans un restaurant étoilé 🍷", r: "Ronflex n'est pas si chic que ça…" },
+        { t: "Au Centre Pokémon", r: "Romantique, mais non !" },
+        { t: "Au Corndog 🌭", ok: true, r: "Bonne réponse ! Le meilleur premier date de l'histoire. 🌭💜" },
+        { t: "Au McDo", r: "Pas loin niveau gastronomie… mais non !" },
+      ],
+    },
+    {
+      q: "Question très importante : quand est l'anniversaire de Ronflex ?",
+      choix: [
+        { t: "Le 6 septembre 2002", r: "Ronflex est blessé… il va manger pour se consoler. 🍩" },
+        { t: "Le 16 septembre 2002 🎂", ok: true, r: "Bonne réponse ! Ronflex est rassuré, tu ne l'as pas oublié. 😌" },
+        { t: "Le 16 septembre 2003", r: "Ronflex est flatté que tu le trouves si jeune… mais non !" },
+        { t: "Ronflex n'a pas d'anniversaire, il dort", r: "Très drôle. Ronflex ne rit pas. 😑" },
+      ],
+    },
+    {
+      q: "Quel métier Ronflex aurait rêvé de faire ?",
+      choix: [
+        { t: "Dresseur Pokémon", r: "Bien essayé, mais non !" },
+        { t: "Testeur de matelas 🛏️", r: "Très tentant… mais non !" },
+        { t: "Professeur des écoles 🍎", ok: true, r: "Bonne réponse ! Ronflex aurait été un maître trop chou." },
+        { t: "Astronaute 🚀", r: "Ronflex est un peu trop lourd pour la fusée…" },
       ],
     },
     {
       q: "Quelle est l'activité préférée de Ronflex ?",
       choix: [
-        { t: "Dormir 😴", r: "Oui… mais pas que !" },
-        { t: "Manger 🍩", r: "Aussi, c'est vrai… mais pas que !" },
-        { t: "Te faire des câlins 🤗", r: "Ça c'est vrai… mais pas que !" },
-        { t: "Toutes ces réponses ✨", ok: true, r: "Exactement. Un vrai Ronflex, quoi." },
+        { t: "Dormir 😴", r: "C'est ce que tout le monde croit… mais non !" },
+        { t: "Manger 🍩", r: "Il aime beaucoup ça, c'est vrai… mais non !" },
+        { t: "Marcher, se balader 🚶", ok: true, r: "Bonne réponse ! Surtout main dans la main avec toi. 💜" },
+        { t: "Les jeux vidéo 🎮", r: "Non ! Essaie encore." },
       ],
     },
     {
-      q: "Question piège : quel âge vas-tu avoir aujourd'hui ?",
+      q: "Quel est le Pokémon préféré de Ronflex ?",
+      img: "ectoplasma",
       choix: [
-        { t: "18 ans (pour toujours)", ok: true, r: "Bonne réponse ! Ronflex aurait dit pareil." },
-        { t: "L'âge parfait", ok: true, r: "Bonne réponse ! C'est mathématiquement prouvé." },
-        { t: "On ne demande pas ça à une dame !", ok: true, r: "Bonne réponse ! Ronflex s'excuse platement. 🙇" },
+        { t: "Ronflex, évidemment", r: "Flatteur… mais non ! 😏" },
+        { t: "Pikachu ⚡", r: "Trop classique pour Ronflex !" },
+        { t: "Ectoplasma 👻", ok: true, r: "Bonne réponse ! Ectoplasma te fait un grand sourire. 👻" },
+        { t: "Rondoudou", r: "Rondoudou est vexée maintenant. Elle va chanter pour se venger…" },
       ],
     },
     {
-      q: "Si tu étais une évolution d'Évoli, tu serais…",
+      q: "Qui est la plus belle femme du monde ?",
       choix: [
-        { t: "Nymphali, douce et adorable 🎀", ok: true, r: "Validé. Toute en rubans et en douceur." },
-        { t: "Pyroli, quand j'ai faim 🔥", ok: true, r: "Validé. Ronflex a appris à toujours avoir un goûter sur lui." },
-        { t: "Noctali, le matin avant le café 🌙", ok: true, r: "Validé. Ronflex ne s'approche pas avant 9h." },
-        { t: "Mentali, parce que j'ai toujours raison 🔮", ok: true, r: "Validé. Ronflex ne prendra pas le risque de dire le contraire." },
-      ],
-    },
-    {
-      q: "Qui t'aime le plus au monde ?",
-      choix: [
-        { t: "Évoli", r: "Évoli t'adore, mais il n'est pas dans la course." },
-        { t: "Rondoudou", r: "Rondoudou n'aime que chanter… et dessiner sur la figure des gens qui dorment." },
-        { t: "Ronflex 💜", ok: true, r: "Évidemment. Ce n'était même pas une vraie question." },
+        { t: "Miss France 👑", r: "Miss France ? Elle n'arrive même pas à la cheville de la bonne réponse." },
+        { t: "Nymphali 🎀", r: "Nymphali est jolie, mais pas à ce point-là !" },
+        { t: "Hanane (ma vie) 💜", ok: true, r: "Évidemment. Ce n'était même pas une vraie question." },
       ],
     },
     {
@@ -408,6 +443,9 @@ function renderQuestion() {
   $("qnum").textContent = `Question ${step + 1} sur ${CONFIG.questions.length}`;
   $("next-wrap").innerHTML = "";
   say(Q.q);
+  const qimg = $("qimg");
+  qimg.classList.toggle("on", !!Q.img);
+  if (Q.img) { qimg.src = `img/${Q.img}.webp`; qimg.alt = Q.img; }
   const box = $("choices");
   box.innerHTML = "";
   box.style.minHeight = "";
@@ -504,6 +542,7 @@ function finale() {
     CONFIG.lettre.map((p) => `<p>${escapeHtml(p)}</p>`).join("") +
     `<p class="sign">${escapeHtml(CONFIG.signature)}</p>`;
   $("envelope").classList.remove("open");
+  startNicknames();
   show("screen-final");
   burst(60);
   setTimeout(() => burst(40), 900);
@@ -515,6 +554,19 @@ $("envelope").addEventListener("click", () => {
   env.classList.add("open");
   burst(30);
 });
+
+let nickTimer = null;
+function startNicknames() {
+  const el = $("nick");
+  let i = 0;
+  const showNick = () => {
+    el.style.opacity = 0;
+    setTimeout(() => { el.textContent = CONFIG.surnoms[i++ % CONFIG.surnoms.length] + " 💜"; el.style.opacity = 1; }, 400);
+  };
+  clearInterval(nickTimer);
+  showNick();
+  nickTimer = setInterval(showNick, 2200);
+}
 
 function burst(n) {
   const wrap = $("confetti");
