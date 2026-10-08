@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9defc">
+<meta name="color-scheme" content="light">
+<title>Un message pour toi 💜</title>
+<meta property="og:title" content="Un message pour toi 💜">
+<meta property="og:description" content="Ronflex a quelques questions à te poser avant…">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #f6f0ff;
+    --bg2: #e9defc;
+    --bg3: #fde8f3;
+    --violet: #8b6fd6;
+    --violet-dark: #5b3fa8;
+    --violet-soft: #cdbcf5;
+    --lilas: #b9a3ee;
+    --rose: #f5b8d6;
+    --rose-dark: #e07fb0;
+    --menthe: #b8ecd8;
+    --ink: #3d2e63;
+    --ink-soft: #7a6aa3;
+    --card: rgba(255, 255, 255, 0.82);
+    --shadow: 0 10px 30px rgba(110, 80, 190, 0.18);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: var(--bg1);
+    background-image:
+      radial-gradient(circle at 15% 10%, var(--bg3) 0, transparent 40%),
+      radial-gradient(circle at 90% 30%, var(--bg2) 0, transparent 45%),
+      radial-gradient(circle at 30% 90%, #e3f4ff 0, transparent 40%);
+    background-attachment: fixed;
+    touch-action: manipulation;
+    overflow-x: hidden;
+  }
+  /* petites étoiles qui scintillent en fond */
+  .sky { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .sky span {
+    position: absolute; color: var(--lilas); opacity: .5;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100% { opacity: .15; transform: scale(.8); } 50% { opacity: .7; transform: scale(1.1); } }
+
+  .app {
+    position: relative; z-index: 1;
+    max-width: 480px; margin: 0 auto;
+    min-height: 100dvh;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column;
+  }
+  .screen { display: none; flex: 1; flex-direction: column; animation: fadeIn .5s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  h1, h2 { margin: 0; font-weight: 700; letter-spacing: .2px; }
+
+  .btn {
+    font: inherit; font-weight: 600; font-size: 1.1rem;
+    border: none; border-radius: 999px;
+    padding: 14px 26px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--violet), var(--rose-dark));
+    box-shadow: 0 6px 0 var(--violet-dark), var(--shadow);
+    cursor: pointer;
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--violet-dark), var(--shadow); }
+
+  /* ---------- Accueil ---------- */
+  .intro { justify-content: center; align-items: center; text-align: center; gap: 18px; }
+  .intro .mail {
+    font-size: 4.2rem; line-height: 1;
+    animation: bounce 1.6s ease-in-out infinite;
+  }
+  .intro h1 { font-size: 1.9rem; color: var(--violet-dark); }
+  .intro p { margin: 0; color: var(--ink-soft); font-size: 1.1rem; line-height: 1.45; }
+  .intro .snorlax { width: 190px; filter: drop-shadow(0 8px 12px rgba(91,63,168,.25)); animation: breathe 3s ease-in-out infinite; }
+  .intro .pill {
+    background: var(--card); border-radius: 999px; padding: 6px 14px; font-size: .9rem;
+    color: var(--violet-dark); box-shadow: var(--shadow);
+  }
+  @keyframes bounce { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+  @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04, .97); } }
+
+  /* ---------- Collection Évoli ---------- */
+  .collection {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 10px 12px 8px;
+    box-shadow: var(--shadow);
+  }
+  .collection .label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .85rem; color: var(--ink-soft); margin-bottom: 6px; padding: 0 2px;
+  }
+  .collection .label b { color: var(--violet-dark); }
+  .badges { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+  .badge {
+    aspect-ratio: 1; border-radius: 50%;
+    background: var(--bg2);
+    display: grid; place-items: center;
+    overflow: hidden;
+  }
+  .badge img { width: 92%; height: 92%; object-fit: contain; filter: brightness(0) opacity(.18); transition: filter .4s; }
+  .badge.on { background: linear-gradient(135deg, #fff, var(--bg3)); }
+  .badge.on img { filter: none; }
+  .badge.pop { animation: pop .6s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes pop { 0% { transform: scale(.4); } 100% { transform: scale(1); } }
+
+  /* ---------- Quiz ---------- */
+  .quiz { gap: 14px; }
+  .qnum { text-align: center; font-size: .9rem; color: var(--ink-soft); margin-top: 4px; }
+  .host { display: flex; align-items: flex-end; gap: 6px; }
+  .host img { width: 108px; flex-shrink: 0; filter: drop-shadow(0 6px 8px rgba(91,63,168,.25)); transform-origin: bottom center; }
+  .host img.shake { animation: shake .5s ease; }
+  .host img.happy { animation: hop .6s ease; }
+  @keyframes shake { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-8deg); } 40% { transform: rotate(8deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(5deg); } }
+  @keyframes hop { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-18px) scale(1.05); } }
+
+  .bubble {
+    position: relative; flex: 1;
+    background: #fff;
+    border-radius: 22px 22px 22px 6px;
+    padding: 14px 16px;
+    font-size: 1.12rem; line-height: 1.4;
+    box-shadow: var(--shadow);
+    min-height: 84px;
+    margin-bottom: 30px;
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -10px; bottom: 6px;
+    border: 10px solid transparent; border-right-color: #fff; border-left: 0;
+  }
+  .bubble .who { display: block; font-size: .78rem; font-weight: 600; color: var(--violet); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .6px; }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; position: relative; }
+  .choice {
+    font: inherit; font-size: 1.05rem; font-weight: 500; text-align: left;
+    padding: 14px 18px;
+    border-radius: 18px;
+    border: 2px solid var(--violet-soft);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--violet-soft);
+    transition: transform .1s, background .2s, border-color .2s, left .25s ease, top .25s ease;
+  }
+  .choice:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--violet-soft); }
+  .choice.wrong { background: #f3eef9; color: #b1a6c8; border-color: #e3dcef; box-shadow: none; animation: shake .45s; text-decoration: line-through; pointer-events: none; }
+  .choice.right { background: linear-gradient(135deg, #efe6ff, var(--bg3)); border-color: var(--violet); box-shadow: 0 4px 0 var(--violet); }
+  .choice.dim { opacity: .45; pointer-events: none; }
+  .choice.flee { position: absolute; z-index: 3; white-space: nowrap; }
+
+  .next-wrap { display: flex; justify-content: center; margin-top: 4px; min-height: 64px; }
+  .next-wrap .btn { animation: fadeIn .4s ease; }
+
+  /* ---------- Final ---------- */
+  .final { align-items: center; text-align: center; gap: 16px; }
+  .final h1 {
+    font-size: 2.2rem; line-height: 1.1;
+    background: linear-gradient(135deg, var(--violet-dark), var(--rose-dark));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-top: 6px;
+  }
+  .final h1 small { display: block; font-size: 1.5rem; }
+  .stage { position: relative; width: 100%; height: 190px; }
+  .stage .snorlax { position: absolute; left: 4%; bottom: 0; width: 46%; animation: breathe 3s ease-in-out infinite; }
+  .stage .zzz { position: absolute; left: 30%; top: 4px; font-weight: 700; color: var(--violet); font-size: 1.4rem; }
+  .stage .zzz span { display: inline-block; animation: zz 2.4s ease-in-out infinite; opacity: 0; }
+  .stage .zzz span:nth-child(2) { animation-delay: .5s; font-size: 1.15em; }
+  .stage .zzz span:nth-child(3) { animation-delay: 1s; font-size: 1.3em; }
+  @keyframes zz { 0% { opacity: 0; transform: translate(0, 10px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(14px, -26px); } }
+  .stage .jiggly { position: absolute; right: 6%; bottom: 10px; width: 36%; animation: sway 1.4s ease-in-out infinite; transform-origin: bottom center; }
+  @keyframes sway { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg) translateY(-6px); } }
+  .stage .notes { position: absolute; right: 4%; top: 0; width: 44%; height: 100%; pointer-events: none; }
+  .stage .notes span { position: absolute; bottom: 60%; color: var(--rose-dark); font-size: 1.3rem; animation: note 2.6s linear infinite; opacity: 0; }
+  @keyframes note { 0% { opacity: 0; transform: translate(0,0) rotate(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-30px,-90px) rotate(-20deg); } }
+  .caption { font-size: .9rem; color: var(--ink-soft); margin-top: -6px; }
+
+  .parade { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; width: 100%; }
+  .parade img { width: 17%; max-width: 76px; animation: jump 1.2s ease-in-out infinite; }
+  @keyframes jump { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .envelope {
+    width: 100%; background: var(--card); border-radius: 24px; box-shadow: var(--shadow);
+    padding: 18px; cursor: pointer;
+  }
+  .envelope .closed { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .envelope .closed .icon { font-size: 3.2rem; animation: bounce 1.6s ease-in-out infinite; }
+  .envelope .closed p { margin: 0; color: var(--violet-dark); font-weight: 600; }
+  .letter { display: none; text-align: left; font-size: 1.08rem; line-height: 1.55; }
+  .envelope.open { cursor: default; }
+  .envelope.open .closed { display: none; }
+  .envelope.open .letter { display: block; animation: fadeIn .6s ease; }
+  .letter p { margin: 0 0 12px; }
+  .letter .sign { text-align: right; font-weight: 600; color: var(--violet-dark); margin-top: 14px; }
+
+  .replay { font: inherit; background: none; border: none; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 8px; font-size: .95rem; }
+
+  /* confettis */
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; }
+  .confetti span { position: absolute; top: -40px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="sky" id="sky"></div>
+<div class="confetti" id="confetti"></div>
+
+<main class="app">
+  <!-- Accueil -->
+  <section class="screen intro active" id="screen-intro">
+    <div class="mail">💌</div>
+    <h1 id="intro-title">Tu as reçu un message !</h1>
+    <p>Mais avant de pouvoir le lire, quelqu'un doit vérifier que c'est bien toi…</p>
+    <img class="snorlax" src="img/ronflex.webp" alt="Ronflex">
+    <span class="pill">🔒 Contrôle de sécurité par Ronflex</span>
+    <button class="btn" id="start">C'est parti !</button>
+  </section>
+
+  <!-- Questions -->
+  <section class="screen quiz" id="screen-quiz">
+    <div class="collection">
+      <div class="label"><span>Ta collection Évoli</span><b id="count">0 / 9</b></div>
+      <div class="badges" id="badges"></div>
+    </div>
+    <div class="qnum" id="qnum"></div>
+    <div class="host">
+      <img id="host" src="img/ronflex.webp" alt="Ronflex">
+      <div class="bubble"><span class="who">Ronflex</span><span id="say"></span></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="next-wrap" id="next-wrap"></div>
+  </section>
+
+  <!-- Final -->
+  <section class="screen final" id="screen-final">
+    <h1 id="final-title"></h1>
+    <div class="stage">
+      <div class="zzz"><span>z</span><span>z</span><span>Z</span></div>
+      <img class="snorlax" src="img/ronflex.webp" alt="Ronflex qui dort">
+      <div class="notes"><span style="right:10%">♪</span><span style="right:40%;animation-delay:.9s">♫</span><span style="right:25%;animation-delay:1.7s">♪</span></div>
+      <img class="jiggly" src="img/rondoudou.webp" alt="Rondoudou qui chante">
+    </div>
+    <div class="caption">Rondoudou t'a chanté une chanson… Ronflex n'a pas tenu 😴</div>
+    <div class="parade" id="parade"></div>
+    <div class="envelope" id="envelope">
+      <div class="closed"><div class="icon">💌</div><p>Touche pour ouvrir ta lettre</p></div>
+      <div class="letter" id="letter"></div>
+    </div>
+    <button class="replay" id="replay">Recommencer depuis le début</button>
+  </section>
+</main>
+
+<script>
+/* =====================================================================
+   À PERSONNALISER 💜
+   ===================================================================== */
+const CONFIG = {
+  prenom: "mon amour",
+  signature: "Ton Ronflex 💜",
+  lettre: [
+    "Joyeux anniversaire ! 🎂",
+    "Bravo, tu as réussi le contrôle de sécurité de Ronflex et complété toute ta collection Évoli. Mais la vraie collection rare, c'est toi.",
+    "Merci de rendre chaque jour plus doux, plus drôle et plus beau. Tu es ma personne préférée dans tout l'univers Pokémon (et en dehors aussi).",
+    "Je te souhaite une journée aussi mignonne qu'un Évoli, aussi pétillante qu'un Voltali et aussi douce qu'un Nymphali.",
+    "Je t'aime fort fort fort.",
+  ],
+  // ok: true = bonne réponse. Si toutes sont bonnes, chacune affiche sa propre réaction.
+  // fuyant: true = le bouton s'enfuit quand on essaie de le toucher 😏
+  questions: [
+    {
+      q: "Question de sécurité n°1 : qui est le plus beau mari du monde ?",
+      choix: [
+        { t: "Brad Pitt", r: "Brad Pitt ?! Il ne sait même pas ce qu'est un Ronflex. Réessaie." },
+        { t: "Le facteur", r: "LE FACTEUR ?! Ronflex est très vexé. 😤" },
+        { t: "Ronflex, évidemment 😎", ok: true, r: "Bonne réponse. Ronflex savait que c'était toi. 💜" },
+      ],
+    },
+    {
+      q: "Quelle est l'activité préférée de Ronflex ?",
+      choix: [
+        { t: "Dormir 😴", r: "Oui… mais pas que !" },
+        { t: "Manger 🍩", r: "Aussi, c'est vrai… mais pas que !" },
+        { t: "Te faire des câlins 🤗", r: "Ça c'est vrai… mais pas que !" },
+        { t: "Toutes ces réponses ✨", ok: true, r: "Exactement. Un vrai Ronflex, quoi." },
+      ],
+    },
+    {
+      q: "Question piège : quel âge vas-tu avoir aujourd'hui ?",
+      choix: [
+        { t: "18 ans (pour toujours)", ok: true, r: "Bonne réponse ! Ronflex aurait dit pareil." },
+        { t: "L'âge parfait", ok: true, r: "Bonne réponse ! C'est mathématiquement prouvé." },
+        { t: "On ne demande pas ça à une dame !", ok: true, r: "Bonne réponse ! Ronflex s'excuse platement. 🙇" },
+      ],
+    },
+    {
+      q: "Si tu étais une évolution d'Évoli, tu serais…",
+      choix: [
+        { t: "Nymphali, douce et adorable 🎀", ok: true, r: "Validé. Toute en rubans et en douceur." },
+        { t: "Pyroli, quand j'ai faim 🔥", ok: true, r: "Validé. Ronflex a appris à toujours avoir un goûter sur lui." },
+        { t: "Noctali, le matin avant le café 🌙", ok: true, r: "Validé. Ronflex ne s'approche pas avant 9h." },
+        { t: "Mentali, parce que j'ai toujours raison 🔮", ok: true, r: "Validé. Ronflex ne prendra pas le risque de dire le contraire." },
+      ],
+    },
+    {
+      q: "Qui t'aime le plus au monde ?",
+      choix: [
+        { t: "Évoli", r: "Évoli t'adore, mais il n'est pas dans la course." },
+        { t: "Rondoudou", r: "Rondoudou n'aime que chanter… et dessiner sur la figure des gens qui dorment." },
+        { t: "Ronflex 💜", ok: true, r: "Évidemment. Ce n'était même pas une vraie question." },
+      ],
+    },
+    {
+      q: "Dernière question : acceptes-tu de garder ce Ronflex une année de plus ?",
+      choix: [
+        { t: "Oui 💜", ok: true, r: "YOUPI ! Contrôle de sécurité réussi. Tu peux ouvrir ton message…" },
+        { t: "Non", fuyant: true },
+      ],
+    },
+  ],
+};
+/* ===================================================================== */
+
+const EVOLIS = [
+  ["evoli", "Évoli"], ["aquali", "Aquali"], ["voltali", "Voltali"], ["pyroli", "Pyroli"],
+  ["mentali", "Mentali"], ["noctali", "Noctali"], ["phyllali", "Phyllali"],
+  ["givrali", "Givrali"], ["nymphali", "Nymphali"],
+];
+const $ = (id) => document.getElementById(id);
+let step = 0;
+let typing = null;
+
+// fond étoilé
+(() => {
+  const sky = $("sky");
+  const glyphs = ["✦", "✧", "⋆", "♡"];
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement("span");
+    s.textContent = glyphs[i % glyphs.length];
+    s.style.left = Math.random() * 100 + "%";
+    s.style.top = Math.random() * 100 + "%";
+    s.style.fontSize = 10 + Math.random() * 14 + "px";
+    s.style.animationDelay = Math.random() * 3 + "s";
+    sky.appendChild(s);
+  }
+})();
+
+// collection
+const badges = EVOLIS.map(([file, name]) => {
+  const b = document.createElement("div");
+  b.className = "badge";
+  b.innerHTML = `<img src="img/${file}.webp" alt="${name}">`;
+  $("badges").appendChild(b);
+  return b;
+});
+function updateCollection(answered) {
+  const n = Math.round((answered / CONFIG.questions.length) * EVOLIS.length);
+  badges.forEach((b, i) => {
+    if (i < n && !b.classList.contains("on")) {
+      b.classList.add("on", "pop");
+      setTimeout(() => b.classList.remove("pop"), 700);
+    }
+    if (i >= n) b.classList.remove("on");
+  });
+  $("count").textContent = `${n} / ${EVOLIS.length}`;
+}
+
+function say(text) {
+  clearInterval(typing);
+  const el = $("say");
+  el.textContent = "";
+  let i = 0;
+  typing = setInterval(() => {
+    el.textContent = text.slice(0, ++i);
+    if (i >= text.length) clearInterval(typing);
+  }, 22);
+}
+
+function animateHost(cls) {
+  const h = $("host");
+  h.classList.remove("shake", "happy");
+  void h.offsetWidth;
+  h.classList.add(cls);
+}
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+function renderQuestion() {
+  const Q = CONFIG.questions[step];
+  $("qnum").textContent = `Question ${step + 1} sur ${CONFIG.questions.length}`;
+  $("next-wrap").innerHTML = "";
+  say(Q.q);
+  const box = $("choices");
+  box.innerHTML = "";
+  box.style.minHeight = "";
+  Q.choix.forEach((c) => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = c.t;
+    if (c.fuyant) setupFlee(btn, box);
+    else btn.addEventListener("click", () => answer(c, btn));
+    box.appendChild(btn);
+  });
+}
+
+function answer(c, btn) {
+  if (c.ok) {
+    btn.classList.add("right");
+    document.querySelectorAll(".choice").forEach((b) => { if (b !== btn) b.classList.add("dim"); });
+    btn.style.pointerEvents = "none";
+    animateHost("happy");
+    say(c.r);
+    burst(14);
+    updateCollection(step + 1);
+    const last = step === CONFIG.questions.length - 1;
+    const next = document.createElement("button");
+    next.className = "btn";
+    next.textContent = last ? "Ouvrir mon message 💌" : "Question suivante →";
+    next.addEventListener("click", () => {
+      if (last) return finale();
+      step++;
+      renderQuestion();
+    });
+    setTimeout(() => $("next-wrap").appendChild(next), 500);
+  } else {
+    btn.classList.add("wrong");
+    animateHost("shake");
+    say(c.r);
+    if (navigator.vibrate) navigator.vibrate(120);
+  }
+}
+
+// le bouton "Non" qui s'enfuit
+function setupFlee(btn, box) {
+  const lines = [
+    "Hmm ? Ronflex n'a pas bien vu ce que tu voulais toucher…",
+    "Ce bouton a l'air un peu timide.",
+    "Ronflex pense que ce bouton est cassé.",
+    "Tu es sûre ? Réfléchis bien…",
+    "Bon. Ronflex a réparé le bouton pour toi.",
+  ];
+  let tries = 0;
+  const flee = (e) => {
+    if (btn.dataset.tamed) return;
+    e.preventDefault();
+    const boxRect = box.getBoundingClientRect();
+    if (!btn.classList.contains("flee")) {
+      box.style.minHeight = Math.max(boxRect.height, 190) + "px";
+      btn.style.left = btn.offsetLeft + "px";
+      btn.style.top = btn.offsetTop + "px";
+      btn.classList.add("flee");
+    }
+    const maxX = Math.max(0, box.clientWidth - btn.offsetWidth);
+    const maxY = Math.max(0, box.clientHeight - btn.offsetHeight);
+    btn.style.left = Math.random() * maxX + "px";
+    btn.style.top = Math.random() * maxY + "px";
+    say(lines[Math.min(tries, lines.length - 1)]);
+    animateHost("shake");
+    tries++;
+    if (tries === 5) {
+      // délai pour que le tap en cours ne valide pas tout de suite le bouton transformé
+      setTimeout(() => {
+        btn.dataset.tamed = "1";
+        btn.textContent = "Oui aussi 💜";
+        btn.addEventListener("click", () => answer({ ok: true, r: "Bien joué, il n'y avait qu'une seule réponse possible de toute façon. 😌" }, btn));
+      }, 450);
+    }
+  };
+  btn.addEventListener("pointerdown", flee);
+  btn.addEventListener("mouseenter", flee);
+  btn.addEventListener("click", (e) => { if (!btn.dataset.tamed) flee(e); });
+}
+
+function finale() {
+  $("final-title").innerHTML = `Joyeux anniversaire<small>${escapeHtml(CONFIG.prenom)} !</small>`;
+  const parade = $("parade");
+  parade.innerHTML = "";
+  EVOLIS.forEach(([file, name], i) => {
+    const img = document.createElement("img");
+    img.src = `img/${file}.webp`;
+    img.alt = name;
+    img.style.animationDelay = i * 0.12 + "s";
+    parade.appendChild(img);
+  });
+  $("letter").innerHTML =
+    CONFIG.lettre.map((p) => `<p>${escapeHtml(p)}</p>`).join("") +
+    `<p class="sign">${escapeHtml(CONFIG.signature)}</p>`;
+  $("envelope").classList.remove("open");
+  show("screen-final");
+  burst(60);
+  setTimeout(() => burst(40), 900);
+}
+
+$("envelope").addEventListener("click", () => {
+  const env = $("envelope");
+  if (env.classList.contains("open")) return;
+  env.classList.add("open");
+  burst(30);
+});
+
+function burst(n) {
+  const wrap = $("confetti");
+  const glyphs = ["💜", "✨", "🩷", "⭐", "🎀", "💫", "🎉"];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement("span");
+    s.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.fontSize = 14 + Math.random() * 16 + "px";
+    const d = 2.4 + Math.random() * 2.2;
+    s.style.animationDuration = d + "s";
+    s.style.animationDelay = Math.random() * 0.6 + "s";
+    wrap.appendChild(s);
+    setTimeout(() => s.remove(), (d + 0.7) * 1000);
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+$("start").addEventListener("click", () => {
+  step = 0;
+  updateCollection(0);
+  show("screen-quiz");
+  renderQuestion();
+});
+$("replay").addEventListener("click", () => {
+  updateCollection(0);
+  show("screen-intro");
+});
+</script>
+</body>
+</html>
