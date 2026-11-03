@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Marathon Marvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: comic-panel reel. Single dark look on purpose: night sky over Stark Tower, red and gold armor, halftone print */
+:root{
+  --bg:#0b0d1a; --panel:#141830; --panel-2:#1b2042; --ink:#05060d; --fg:#f4f1e8; --muted:#a3a7c4; --line:#2a3060;
+  --red:#e2231a; --gold:#f5b916; --blue:#3fa9f5; --ok:#4ade80;
+  --display:"Bangers","Impact","Arial Black",sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;
+  background-image:radial-gradient(circle at 15% -10%,rgba(226,35,26,.28),transparent 45%),radial-gradient(circle at 100% 0%,rgba(63,169,245,.18),transparent 40%),radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.4px);
+  background-size:auto,auto,7px 7px;background-attachment:fixed}
+.wrap{max-width:780px;margin:0 auto;padding-block:30px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+
+header{display:flex;flex-direction:column;gap:8px}
+.kicker{font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:var(--gold);font-size:.82rem}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(3rem,11vw,5rem);line-height:.88;letter-spacing:.03em;margin:0;text-wrap:balance;
+  color:var(--fg);text-shadow:3px 3px 0 var(--red),6px 6px 0 var(--ink);transform:skew(-4deg)}
+h1 span{color:var(--gold)}
+.status-line{font-family:var(--cond);font-size:.95rem;letter-spacing:.04em;color:var(--muted);margin:0}
+.status-line.warn{color:var(--red)}
+.label{font-family:var(--cond);font-size:.85rem;text-transform:uppercase;letter-spacing:.18em;font-weight:700}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.resume{position:relative;background:linear-gradient(135deg,var(--red) 0%,#9b0f14 70%);color:#fff;border:3px solid var(--ink);box-shadow:7px 7px 0 var(--gold);padding:20px 22px;display:flex;flex-direction:column;gap:8px;overflow:hidden;transform:rotate(-.6deg)}
+.resume::after{content:"";position:absolute;inset:0;background:radial-gradient(rgba(0,0,0,.22) 1.2px,transparent 1.6px) 0 0/8px 8px;pointer-events:none;mask-image:linear-gradient(115deg,transparent 40%,#000)}
+.resume > *{position:relative;z-index:1}
+.resume .label{color:var(--gold)}
+.resume-title{font-family:var(--display);font-size:clamp(1.8rem,6vw,2.5rem);line-height:1;letter-spacing:.03em;text-shadow:2px 2px 0 var(--ink)}
+.resume-time{font-family:var(--mono);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.resume-time small{font-family:var(--body);font-size:.95rem;opacity:.85}
+.resume .bar{background:rgba(0,0,0,.35)}
+.resume .bar i{background:var(--gold)}
+
+.reactor{width:46px;height:46px;border-radius:50%;flex:none;background:radial-gradient(circle,#e8f7ff 0 18%,var(--blue) 30%,rgba(63,169,245,.25) 55%,transparent 70%);box-shadow:0 0 22px var(--blue)}
+@media (prefers-reduced-motion:no-preference){.reactor{animation:pulse 2.6s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 34px var(--blue);opacity:.85}}}
+
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel);border:2px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:var(--muted);font-weight:600}
+.stat .v{font-family:var(--display);font-size:1.6rem;letter-spacing:.04em;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+
+.bar{height:7px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue)}
+
+.reel{display:flex;flex-direction:column;gap:12px;list-style:none;margin:0;padding:0}
+.film{background:var(--panel);border:2px solid var(--line);padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;position:relative}
+.film.watching{border-color:var(--gold);background:var(--panel-2);box-shadow:5px 5px 0 var(--red)}
+.film.done{opacity:.65}
+.num{font-family:var(--display);font-size:2.3rem;line-height:.9;color:var(--muted);grid-row:span 3;min-width:1.6ch;text-align:right;letter-spacing:.02em}
+.film.watching .num{color:var(--gold)}
+.film.done .num{color:var(--ok)}
+.head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;min-width:0}
+.title{font-family:var(--cond);font-weight:700;font-size:1.25rem;text-transform:uppercase;letter-spacing:.03em;line-height:1.15}
+.title .yr{color:var(--muted);font-weight:500;font-size:.95rem;margin-left:6px}
+.pill{border:2px solid var(--ink);font-family:var(--cond);font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:2px 10px;cursor:pointer;white-space:nowrap;transform:skew(-8deg)}
+.pill.todo{background:var(--line);color:var(--fg)}
+.pill.watching{background:var(--gold);color:var(--ink)}
+.pill.done{background:var(--ok);color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;min-width:0}
+.time-field{display:flex;align-items:center;gap:6px}
+.time-field input{width:6.6em;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.95rem;padding:5px 8px;border:2px solid var(--line);background:var(--ink);color:var(--gold)}
+.time-field .of{color:var(--muted);font-size:.85rem;font-family:var(--mono)}
+.note{flex:1 1 180px;min-width:0;font:inherit;font-size:.9rem;padding:5px 8px;border:2px solid var(--line);background:var(--ink);color:var(--fg)}
+.note::placeholder,.add input::placeholder{color:#6b6f92}
+.film .bar{grid-column:2;margin-top:2px}
+.film.watching .bar i{background:var(--gold)}
+.film.done .bar i{background:var(--ok)}
+.tools{display:flex;gap:4px;margin-left:auto}
+.icon-btn{border:2px solid var(--line);background:transparent;color:var(--muted);font-family:var(--cond);font-weight:600;font-size:.85rem;padding:2px 8px;cursor:pointer}
+.icon-btn:hover{color:var(--fg);border-color:var(--muted)}
+.icon-btn.danger:hover{color:var(--red);border-color:var(--red)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.add{display:flex;flex-wrap:wrap;gap:10px;align-items:end;border-top:2px dashed var(--line);padding-top:18px}
+.add .label{width:100%;color:var(--gold)}
+.add label:not(.label){display:flex;flex-direction:column;gap:4px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--muted)}
+.add input{font:inherit;padding:7px 9px;border:2px solid var(--line);background:var(--panel);color:var(--fg)}
+#f-title{width:min(260px,100%)}
+#f-year,#f-run{width:6em}
+.primary{background:var(--red);color:#fff;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--gold);font-family:var(--display);font-size:1.2rem;letter-spacing:.06em;padding:6px 16px;cursor:pointer}
+.primary:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--gold)}
+.empty{color:var(--muted);padding:18px;border:2px dashed var(--line);text-align:center;font-family:var(--cond);font-size:1.05rem}
+.hint{font-size:.88rem;color:var(--muted);margin:0}
+footer{text-align:center;font-family:var(--display);font-size:1.3rem;letter-spacing:.08em;color:var(--muted)}
+footer b{color:var(--red);font-weight:400}
+@media (max-width:480px){.summary{grid-template-columns:1fr 1fr}.summary .stat:last-child{grid-column:span 2}}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .3s ease}.pill,.primary{transition:transform .1s}}
+</style>
+<style>
+.setup{background:var(--panel);border:2px solid var(--gold);padding:16px;display:flex;flex-direction:column;gap:10px}
+.setup p{margin:0;font-size:.92rem;color:var(--muted)}
+.setup ol{margin:0;padding-left:20px;font-size:.92rem;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.setup a{color:var(--blue)}
+.setup .row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.setup label{display:flex;flex-direction:column;gap:4px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--muted);flex:1 1 220px;min-width:0}
+.setup input{font:inherit;font-family:var(--mono);font-size:.85rem;padding:7px 9px;border:2px solid var(--line);background:var(--ink);color:var(--fg);min-width:0}
+.linkish{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer;padding:0;align-self:center}
+.sync-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <span class="kicker">Whatever it takes</span>
+    <h1>Marathon <span>Marvel</span></h1>
+    <div class="sync-row">
+      <p class="status-line" id="status">J.A.R.V.I.S. charge ta liste…</p>
+      <button class="linkish" id="open-setup" type="button">Réglages</button>
+    </div>
+  </header>
+
+  <section class="setup" id="setup" hidden>
+    <span class="label" style="color:var(--gold)">Connexion à GitHub (une fois par PC)</span>
+    <p>Tes timings sont enregistrés dans ton dépôt GitHub. Pour pouvoir les modifier depuis ce PC, colle un jeton GitHub. Il reste uniquement dans ce navigateur.</p>
+    <ol>
+      <li>Ouvre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+      <li>Repository access : <b>Only select repositories</b> → ton dépôt</li>
+      <li>Permissions → Repository → <b>Contents : Read and write</b></li>
+      <li>Generate token, puis colle-le ici</li>
+    </ol>
+    <div class="row">
+      <label for="s-token">Jeton GitHub<input id="s-token" type="password" autocomplete="off" placeholder="github_pat_…"></label>
+      <label for="s-repo">Dépôt<input id="s-repo" placeholder="utilisateur/depot"></label>
+    </div>
+    <div class="row">
+      <button class="primary" id="s-save" type="button">Connecter</button>
+      <button class="linkish" id="s-forget" type="button">Oublier le jeton sur ce PC</button>
+    </div>
+  </section>
+
+  <section class="resume" id="resume" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="label" id="resume-label">Avengers, rassemblement</span><span class="reactor" aria-hidden="true"></span></div>
+    <div class="resume-title" id="resume-title"></div>
+    <div class="resume-time" id="resume-time"></div>
+    <div class="bar"><i id="resume-bar" style="width:0"></i></div>
+  </section>
+
+  <div class="summary" id="summary"></div>
+
+  <ol class="reel" id="reel"><li class="empty">Ta liste de films va apparaître ici.</li></ol>
+
+  <p class="hint">Tape le timing où tu t'arrêtes (ex. 1:12:30 ou 72:30), puis Entrée ou clique ailleurs. C'est envoyé sur GitHub et tu le retrouves sur n'importe quel PC.</p>
+
+  <form class="add" id="add">
+    <span class="label">Recruter un nouveau film</span>
+    <label for="f-title">Film<input id="f-title" required placeholder="The Fantastic Four: First Steps"></label>
+    <label for="f-year">Année<input id="f-year" inputmode="numeric" placeholder="2025"></label>
+    <label for="f-run">Durée (min)<input id="f-run" inputmode="numeric" placeholder="115"></label>
+    <button class="primary" type="submit">Assemble !</button>
+  </form>
+  <footer>I love you <b>3000</b></footer>
+</main>
+
+<script>
+/* ---------- Config ---------- */
+// Repo guessed from the GitHub Pages address (user.github.io/repo/...), editable in Réglages.
+const DATA_PATH = "data/marathon.json";
+const guessRepo = (() => {
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const first = location.pathname.split("/").filter(Boolean)[0];
+  return m && first ? m[1] + "/" + first : "thefoxnation09/test";
+})();
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch(e){} }
+};
+let token = store.get("mm-token") || "";
+let repo = store.get("mm-repo") || guessRepo;
+
+const DEFAULT_FILMS = [
+  ["xmen","X-Men",2000,104],["x2","X2: X-Men United",2003,133],["thor4","Thor: Love and Thunder",2022,119],
+  ["bp2","Black Panther: Wakanda Forever",2022,161],["antman3","Ant-Man and the Wasp: Quantumania",2023,125],
+  ["gotg3","Guardians of the Galaxy Vol. 3",2023,150],["marvels","The Marvels",2023,105],
+  ["dpw","Deadpool & Wolverine",2024,128],["cap4","Captain America: Brave New World",2025,118],["thunderbolts","Thunderbolts*",2025,127]
+].map(([id,title,year,runtime],i) => ({id,title,year,runtime,order:i+1,pos:0,status:"todo",note:"",updatedAt:0}));
+
+/* ---------- State ---------- */
+// state = {films:{id:film}, deleted:{id:timestamp}}
+let state = null, sha = null, dirty = false;
+try{ state = JSON.parse(store.get("mm-cache")); }catch(e){}
+if(!state || !state.films) state = {films:Object.fromEntries(DEFAULT_FILMS.map(f => [f.id,f])), deleted:{}};
+dirty = store.get("mm-dirty") === "1";
+
+const $ = s => document.querySelector(s);
+const STATUS = {todo:"À voir", watching:"En cours", done:"Vu"};
+const NEXT = {todo:"watching", watching:"done", done:"todo"};
+function setStatus(t, warn){ const el = $("#status"); el.textContent = t; el.classList.toggle("warn", !!warn); }
+const filmsList = () => Object.values(state.films).sort((a,b) => (a.order||0)-(b.order||0));
+
+/* ---------- GitHub sync ---------- */
+const b64encode = str => { const bytes = new TextEncoder().encode(str); let bin = ""; bytes.forEach(b => bin += String.fromCharCode(b)); return btoa(bin); };
+const b64decode = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g,"")), c => c.charCodeAt(0)));
+const api = (method, body) => fetch(`https://api.github.com/repos/${repo}/contents/${DATA_PATH}` + (method === "GET" ? "?t=" + Date.now() : ""), {
+  method, cache:"no-store",
+  headers: Object.assign({"Accept":"application/vnd.github+json"}, token ? {"Authorization":"Bearer " + token} : {}, body ? {"Content-Type":"application/json"} : {}),
+  body: body ? JSON.stringify(body) : undefined
+});
+
+// Newest edit wins, film by film, so two PCs never wipe each other's changes.
+function merge(a, b){
+  const out = {films:{}, deleted:Object.assign({}, a.deleted||{})};
+  for(const [id,t] of Object.entries(b.deleted||{})) out.deleted[id] = Math.max(out.deleted[id]||0, t);
+  for(const src of [a.films||{}, b.films||{}]) for(const f of Object.values(src)){
+    const cur = out.films[f.id];
+    if(!cur || (f.updatedAt||0) > (cur.updatedAt||0)) out.films[f.id] = f;
+  }
+  for(const [id,t] of Object.entries(out.deleted)) if(out.films[id] && (out.films[id].updatedAt||0) <= t) delete out.films[id];
+  return out;
+}
+
+async function pull(){
+  const r = await api("GET");
+  if(r.status === 404) return {missing:true};
+  if(r.status === 401) throw {msg:"Jeton GitHub refusé. Recolle-le dans Réglages."};
+  if(!r.ok) throw {msg:"GitHub ne répond pas (" + r.status + ")."};
+  const j = await r.json();
+  return {sha:j.sha, data:JSON.parse(b64decode(j.content))};
+}
+
+let syncing = null, pushTimer = null;
+async function sync(){
+  if(syncing) { await syncing; }
+  syncing = (async () => {
+    try{
+      const remote = await pull();
+      if(remote.missing){ sha = null; if(!dirty && !token){ setStatus("Pas encore de sauvegarde sur GitHub. Ouvre Réglages pour te connecter.", true); return; } }
+      else { sha = remote.sha; state = merge(remote.data, dirty ? state : {films:{},deleted:{}}); if(!dirty) state = remote.data; }
+      if(dirty || remote.missing){
+        if(!token){ setStatus("Modifs gardées sur ce PC seulement. Connecte GitHub dans Réglages pour les synchroniser.", true); return; }
+        const r = await api("PUT", {message:"Marathon Marvel : mise à jour des timings", content:b64encode(JSON.stringify(state,null,1)), ...(sha ? {sha} : {})});
+        if(r.status === 409 || r.status === 422){ syncing = null; return sync(); }   // someone saved in between: re-merge
+        if(r.status === 401 || r.status === 403 || r.status === 404) throw {msg:"Le jeton n'a pas le droit d'écrire dans " + repo + ". Vérifie Contents : Read and write."};
+        if(!r.ok) throw {msg:"Sauvegarde GitHub impossible (" + r.status + ")."};
+        sha = (await r.json()).content.sha;
+        dirty = false; store.set("mm-dirty", null);
+      }
+      store.set("mm-cache", JSON.stringify(state));
+      setStatus(token ? "J.A.R.V.I.S. en ligne · synchronisé avec GitHub" : "Lecture seule · connecte GitHub dans Réglages pour modifier depuis ce PC", !token);
+      render();
+    }catch(e){
+      setStatus((e && e.msg) || "Pas de connexion. Tes modifs sont gardées sur ce PC et partiront plus tard.", true);
+    }
+  })();
+  await syncing; syncing = null;
+}
+
+function change(fn){
+  fn();
+  dirty = true; store.set("mm-dirty","1"); store.set("mm-cache", JSON.stringify(state));
+  render(); setStatus("Sauvegarde en cours…");
+  clearTimeout(pushTimer); pushTimer = setTimeout(sync, 700);
+}
+function patchFilm(id, patch){ change(() => { Object.assign(state.films[id], patch, {updatedAt:Date.now()}); }); }
+
+/* ---------- Rendering ---------- */
+function fmt(sec){
+  sec = Math.max(0, Math.round(sec||0));
+  const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
+  return h + ":" + String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+function parse(str){
+  str = (str||"").trim(); if(!str) return 0;
+  const p = str.split(/[:h'm\s]+/).filter(Boolean).map(Number);
+  if(p.some(isNaN)) return null;
+  if(p.length === 1) return p[0]*60;
+  if(p.length === 2) return p[0]*60 + p[1];
+  return p[0]*3600 + p[1]*60 + p[2];
+}
+
+function render(){
+  const films = filmsList();
+  const reel = $("#reel");
+  if(!films.length){
+    reel.innerHTML = '<li class="empty">Je pourrais faire ça toute la journée… mais la liste est vide. Ajoute un film en bas.</li>';
+    $("#resume").hidden = true; $("#summary").textContent = ""; return;
+  }
+  const active = document.activeElement && document.activeElement.id;
+  reel.textContent = "";
+  films.forEach((f, i) => {
+    const run = (f.runtime||0)*60, pos = f.pos||0, st = f.status||"todo";
+    const pct = st === "done" ? 100 : run ? Math.min(100, pos/run*100) : 0;
+    const li = document.createElement("li");
+    li.className = "film " + st;
+    li.innerHTML = `
+      <div class="num">${i+1}</div>
+      <div class="head">
+        <span class="title"></span>
+        <button class="pill ${st}" type="button" title="Changer le statut">${STATUS[st]}</button>
+      </div>
+      <div class="controls">
+        <span class="time-field">
+          <input id="t-${f.id}" aria-label="Timing d'arrêt" value="${fmt(pos)}">
+          <span class="of">/ ${run ? fmt(run) : "?"}</span>
+        </span>
+        <input class="note" id="n-${f.id}" aria-label="Note" placeholder="Note (scène, contexte…)">
+        <span class="tools">
+          <button class="icon-btn up" type="button" aria-label="Monter">↑</button>
+          <button class="icon-btn down" type="button" aria-label="Descendre">↓</button>
+          <button class="icon-btn danger del" type="button">Retirer</button>
+        </span>
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>`;
+    li.querySelector(".title").textContent = f.title;
+    if(f.year){ const y = document.createElement("span"); y.className = "yr"; y.textContent = "(" + f.year + ")"; li.querySelector(".title").append(y); }
+    li.querySelector(".note").value = f.note || "";
+
+    li.querySelector(".pill").onclick = () => { const s = NEXT[st]; patchFilm(f.id, s === "todo" ? {status:s, pos:0} : {status:s}); };
+    const t = li.querySelector(".time-field input");
+    t.addEventListener("change", () => {
+      const v = parse(t.value);
+      if(v === null){ t.value = fmt(f.pos); setStatus("Format de timing non reconnu. Exemple : 1:12:30", true); return; }
+      if(v === (f.pos||0)){ t.value = fmt(v); return; }
+      patchFilm(f.id, v > 0 && st === "todo" ? {pos:v, status:"watching"} : {pos:v});
+    });
+    t.addEventListener("keydown", e => { if(e.key === "Enter") t.blur(); });
+    const n = li.querySelector(".note");
+    n.addEventListener("change", () => { if(n.value !== (f.note||"")) patchFilm(f.id, {note:n.value}); });
+    n.addEventListener("keydown", e => { if(e.key === "Enter") n.blur(); });
+    li.querySelector(".up").onclick = () => swap(i, i-1);
+    li.querySelector(".down").onclick = () => swap(i, i+1);
+    const del = li.querySelector(".del");
+    del.onclick = () => {
+      if(del.dataset.armed){ change(() => { delete state.films[f.id]; state.deleted = state.deleted || {}; state.deleted[f.id] = Date.now(); }); }
+      else { del.dataset.armed = "1"; del.textContent = "Confirmer ?"; setTimeout(() => { delete del.dataset.armed; del.textContent = "Retirer"; }, 3000); }
+    };
+    reel.append(li);
+  });
+  if(active){ const el = document.getElementById(active); if(el) el.focus(); }
+
+  const watching = films.filter(f => f.status === "watching").sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0))[0];
+  const target = watching || films.find(f => (f.status||"todo") === "todo");
+  $("#resume").hidden = false;
+  if(target){
+    const run = (target.runtime||0)*60;
+    $("#resume-label").textContent = watching ? "Avengers, rassemblement" : "Prochaine mission";
+    $("#resume-title").textContent = target.title + (target.year ? " (" + target.year + ")" : "");
+    $("#resume-time").textContent = "";
+    const tm = document.createElement("span"); tm.textContent = fmt(target.pos);
+    const of = document.createElement("small"); of.textContent = (run ? " / " + fmt(run) : "") + (target.note ? " · " + target.note : "");
+    $("#resume-time").append(tm, of);
+    $("#resume-bar").style.width = (run ? Math.min(100, (target.pos||0)/run*100) : 0) + "%";
+  } else {
+    $("#resume-label").textContent = "Marathon terminé";
+    $("#resume-title").textContent = "I love you 3000 ❤";
+    $("#resume-time").textContent = ""; $("#resume-bar").style.width = "100%";
+  }
+
+  const done = films.filter(f => f.status === "done").length;
+  const totalMin = films.reduce((a,f) => a + (f.runtime||0), 0);
+  const leftSec = films.reduce((a,f) => f.status === "done" ? a : a + Math.max(0,(f.runtime||0)*60 - (f.pos||0)), 0);
+  const hm = sec => { const t = Math.round(sec/60), h = Math.floor(t/60), m = t%60; return h + " h " + String(m).padStart(2,"0"); };
+  $("#summary").textContent = "";
+  [["Films vus", done + "/" + films.length], ["Durée totale", hm(totalMin*60)], ["Reste à voir", hm(leftSec)]].forEach(([k,v]) => {
+    const s = document.createElement("div"); s.className = "stat";
+    const a = document.createElement("span"); a.className = "k"; a.textContent = k;
+    const b = document.createElement("span"); b.className = "v"; b.textContent = v;
+    s.append(a,b); $("#summary").append(s);
+  });
+}
+
+function swap(a, b){
+  const films = filmsList();
+  if(b < 0 || b >= films.length) return;
+  const A = films[a], B = films[b], now = Date.now();
+  change(() => { const o = A.order; A.order = B.order; B.order = o; A.updatedAt = B.updatedAt = now; });
+}
+
+$("#add").addEventListener("submit", e => {
+  e.preventDefault();
+  const title = $("#f-title").value.trim(); if(!title) return;
+  const films = filmsList();
+  const id = "f" + Date.now().toString(36);
+  const order = films.length ? Math.max(...films.map(f => f.order||0)) + 1 : 1;
+  change(() => { state.films[id] = {id, title, year:parseInt($("#f-year").value)||null, runtime:parseInt($("#f-run").value)||0, order, pos:0, status:"todo", note:"", updatedAt:Date.now()}; });
+  $("#add").reset();
+});
+
+/* ---------- Réglages ---------- */
+$("#s-repo").value = repo;
+$("#s-token").value = token;
+$("#open-setup").onclick = () => { $("#setup").hidden = !$("#setup").hidden; };
+$("#s-save").onclick = () => {
+  token = $("#s-token").value.trim(); repo = $("#s-repo").value.trim() || guessRepo;
+  store.set("mm-token", token || null); store.set("mm-repo", repo);
+  $("#setup").hidden = true; setStatus("Connexion à GitHub…"); sync();
+};
+$("#s-forget").onclick = () => { token = ""; store.set("mm-token", null); $("#s-token").value = ""; setStatus("Jeton oublié sur ce PC. Lecture seule.", true); };
+if(!token) $("#setup").hidden = false;
+
+// Pick up changes made on another PC when you come back to this tab.
+document.addEventListener("visibilitychange", () => { if(!document.hidden && !syncing) sync(); });
+render();
+sync();
+</script>
+</body>
+</html>
