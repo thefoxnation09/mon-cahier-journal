@@ -169,7 +169,7 @@ const DATA_PATH = "data/marathon.json";
 const guessRepo = (() => {
   const m = location.hostname.match(/^([^.]+)\.github\.io$/);
   const first = location.pathname.split("/").filter(Boolean)[0];
-  return m && first ? m[1] + "/" + first : "thefoxnation09/test";
+  return m && first ? m[1] + "/" + first : "thefoxnation09/mon-cahier-journal";
 })();
 const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
