@@ -106,11 +106,6 @@ footer b{color:var(--red);font-weight:400}
 .setup label{display:flex;flex-direction:column;gap:4px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--muted);flex:1 1 220px;min-width:0}
 .setup input{font:inherit;font-family:var(--mono);font-size:.85rem;padding:7px 9px;border:2px solid var(--line);background:var(--ink);color:var(--fg);min-width:0}
 .linkish{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer;padding:0;align-self:center}
-.snd-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:.9rem}
-.snd-k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--muted);min-width:8.5em}
-.snd-name{font-family:var(--mono);font-size:.8rem;color:var(--fg);min-width:0;overflow-wrap:anywhere;flex:1 1 120px}
-.snd-pick{flex:0 0 auto!important;display:inline-block!important;border:2px solid var(--line);padding:3px 10px;cursor:pointer;font-family:var(--cond);font-weight:600;letter-spacing:.06em;color:var(--fg)}
-.snd-pick:focus-within{outline:2px solid var(--gold)}
 .sync-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 </style>
 </head>
@@ -297,14 +292,6 @@ PUISSANCE 400 %</div>
       <button class="primary" id="s-save" type="button">Connecter</button>
       <button class="linkish" id="s-forget" type="button">Oublier le jeton sur ce PC</button>
     </div>
-    <span class="label" style="color:var(--gold);margin-top:8px">Sons de l'intro (sur ce PC uniquement)</span>
-    <p>Choisis tes propres fichiers audio pour l'intro. Ils restent dans ce navigateur, ne partent jamais sur GitHub, et remplacent la voix du PC.</p>
-    <div class="snd-row"><span class="snd-k">Accueil</span><span class="snd-name" id="snd-greet-name">Voix du PC</span>
-      <label class="snd-pick" for="snd-greet">Choisir…<input id="snd-greet" type="file" accept="audio/*" hidden></label>
-      <button class="linkish" id="snd-greet-play" type="button" hidden>Écouter</button><button class="linkish" id="snd-greet-del" type="button" hidden>Retirer</button></div>
-    <div class="snd-row"><span class="snd-k">Phrase de fin</span><span class="snd-name" id="snd-end-name">Voix du PC</span>
-      <label class="snd-pick" for="snd-end">Choisir…<input id="snd-end" type="file" accept="audio/*" hidden></label>
-      <button class="linkish" id="snd-end-play" type="button" hidden>Écouter</button><button class="linkish" id="snd-end-del" type="button" hidden>Retirer</button></div>
   </section>
 
   <section class="resume" id="resume" hidden>
@@ -571,101 +558,82 @@ document.addEventListener("visibilitychange", () => { if(!document.hidden && !sy
 render();
 sync();
 
-/* ---------- Sons perso de l'intro (gardés dans ce navigateur, jamais envoyés) ---------- */
-const sounds = (() => {
-  let dbp = null;
-  const open = () => dbp || (dbp = new Promise((res, rej) => {
-    const r = indexedDB.open("marathon-sons", 1);
-    r.onupgradeneeded = () => r.result.createObjectStore("sons");
-    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-  }));
-  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction("sons", mode); const q = fn(t.objectStore("sons")); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }); };
-  return {
-    get: k => tx("readonly", s => s.get(k)).catch(() => null),
-    set: (k, v) => tx("readwrite", s => s.put(v, k)),
-    del: k => tx("readwrite", s => s.delete(k))
-  };
-})();
-function playBlob(blob){
-  return new Promise(res => {
-    try{
-      const url = URL.createObjectURL(blob), a = new Audio(url);
-      const done = () => { URL.revokeObjectURL(url); res(); };
-      a.onended = done; a.onerror = done; setTimeout(done, 20000);
-      a.play().catch(done);
-    }catch(e){ res(); }
-  });
-}
-async function refreshSoundRows(){
-  for(const k of ["greet","end"]){
-    const v = await sounds.get(k);
-    $("#snd-" + k + "-name").textContent = v ? v.name : "Voix du PC";
-    $("#snd-" + k + "-play").hidden = !v; $("#snd-" + k + "-del").hidden = !v;
-  }
-}
-for(const k of ["greet","end"]){
-  $("#snd-" + k).addEventListener("change", async e => {
-    const f = e.target.files[0]; if(!f) return;
-    if(f.size > 15e6){ setStatus("Fichier trop lourd (15 Mo max).", true); return; }
-    try{ await sounds.set(k, {name:f.name, blob:f}); setStatus("Son enregistré sur ce PC."); }
-    catch(err){ setStatus("Impossible de garder ce son dans ce navigateur.", true); }
-    e.target.value = ""; refreshSoundRows();
-  });
-  $("#snd-" + k + "-play").onclick = async () => { const v = await sounds.get(k); if(v) playBlob(v.blob); };
-  $("#snd-" + k + "-del").onclick = async () => { await sounds.del(k).catch(() => {}); refreshSoundRows(); };
-}
-refreshSoundRows();
-
 /* ---------- Intro : vue de l'intérieur du casque ---------- */
 (() => {
   const intro = $("#intro"), wait = ms => new Promise(r => setTimeout(r, ms));
-  let finished = false, audio = null, timers = [];
+  let finished = false, ac = null, out = null, timers = [];
   const close = () => {
     if(finished) return; finished = true;
-    try{ speechSynthesis.cancel(); }catch(e){}
     timers.forEach(clearInterval);
+    if(out && ac){ out.gain.setTargetAtTime(0, ac.currentTime, .15); }
     intro.classList.add("out"); setTimeout(() => intro.hidden = true, 950);
   };
   $("#skip").onclick = close;
   document.addEventListener("keydown", e => { if(e.key === "Escape") close(); });
 
-  function tone(freq, dur, type, vol, slide){
-    if(!audio) return;
-    const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+  /* ---- Synthesized mechanical sound effects (no recordings) ---- */
+  function noiseBuf(sec){
+    const len = ac.sampleRate * sec, b = ac.createBuffer(1, len, ac.sampleRate), d = b.getChannelData(0);
+    for(let i = 0; i < len; i++) d[i] = Math.random()*2-1;
+    return b;
+  }
+  function env(g, t, a, peak, dur){ g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); }
+  function tone(freq, dur, type, vol, slide, at){
+    if(!ac || finished) return;
+    const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (at||0);
     o.type = type; o.frequency.setValueAtTime(freq, t);
     if(slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    o.connect(g).connect(audio.destination); o.start(t); o.stop(t + dur);
+    env(g, t, .005, vol, dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + .05);
   }
-  function clank(){
-    if(!audio) return;
-    const len = audio.sampleRate * .25, buf = audio.createBuffer(1, len, audio.sampleRate), d = buf.getChannelData(0);
-    for(let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 4);
-    const src = audio.createBufferSource(), f = audio.createBiquadFilter(), g = audio.createGain();
-    f.type = "lowpass"; f.frequency.value = 1400; g.gain.value = .5;
-    src.buffer = buf; src.connect(f).connect(g).connect(audio.destination); src.start();
-    tone(90, .35, "sine", .5, 45);
+  // Servo motor: buzzy sawtooth through a band-pass, pitch rising then settling.
+  function servo(dur, from, to, vol, at){
+    if(!ac) return;
+    const t = ac.currentTime + (at||0), o = ac.createOscillator(), o2 = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain();
+    o.type = "sawtooth"; o2.type = "square";
+    o.frequency.setValueAtTime(from, t); o.frequency.exponentialRampToValueAtTime(to, t + dur*.8); o.frequency.exponentialRampToValueAtTime(to*.85, t + dur);
+    o2.frequency.setValueAtTime(from*1.5, t); o2.frequency.exponentialRampToValueAtTime(to*1.5, t + dur*.8);
+    f.type = "bandpass"; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(2400, t + dur); f.Q.value = 3;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .05); g.gain.setValueAtTime(vol, t + dur - .06); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(f); o2.connect(f); f.connect(g).connect(out);
+    o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + dur + .05);
   }
-  // Pick the calmest-sounding installed voice for a language.
-  function pickVoice(lang, prefer){
-    const vs = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith(lang));
-    return vs.find(v => prefer.test(v.name)) || vs.find(v => /natural|online|google/i.test(v.name)) || vs[0] || null;
+  // Hydraulic hiss: filtered noise that fades out.
+  function hiss(dur, vol, at, freq){
+    if(!ac) return;
+    const t = ac.currentTime + (at||0), s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf(dur); f.type = "highpass"; f.frequency.setValueAtTime(freq||3000, t); f.frequency.exponentialRampToValueAtTime((freq||3000)*2, t + dur);
+    env(g, t, .02, vol, dur); s.connect(f).connect(g).connect(out); s.start(t);
   }
-  function speak(text, lang){
-    return new Promise(res => {
-      try{
-        const u = new SpeechSynthesisUtterance(text);
-        u.voice = lang === "en" ? pickVoice("en-gb", /george|daniel|ryan|thomas|male/i) || pickVoice("en", /guy|david|male/i)
-                                : pickVoice("fr", /henri|paul|thomas|claude|remy|male/i);
-        u.lang = lang === "en" ? "en-GB" : "fr-FR"; u.rate = .98; u.pitch = .9;
-        u.onend = res; u.onerror = res; speechSynthesis.speak(u);
-        setTimeout(res, 9000);
-      }catch(e){ res(); }
-    });
+  // Metal latch: short bright click + low thump.
+  function latch(vol, at){
+    if(!ac) return;
+    const t = ac.currentTime + (at||0), s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf(.06); f.type = "bandpass"; f.frequency.value = 4200; f.Q.value = 6;
+    env(g, t, .001, vol, .06); s.connect(f).connect(g).connect(out); s.start(t);
+    tone(1900, .04, "square", vol*.25, 900, at);
   }
+  // Heavy clank when the faceplate seals.
+  function clank(at){
+    if(!ac) return;
+    const t = ac.currentTime + (at||0), s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf(.35); f.type = "lowpass"; f.frequency.setValueAtTime(2600, t); f.frequency.exponentialRampToValueAtTime(300, t + .3);
+    env(g, t, .002, .7, .35); s.connect(f).connect(g).connect(out); s.start(t);
+    tone(110, .45, "sine", .55, 48, at); tone(523, .5, "triangle", .06, 500, at); tone(1340, .35, "sine", .03, 1300, at);
+  }
+  // Power-up hum that stays under the HUD.
+  function hum(){
+    if(!ac) return;
+    const t = ac.currentTime, o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(40, t); o.frequency.exponentialRampToValueAtTime(82, t + 1.2);
+    o2.type = "triangle"; o2.frequency.setValueAtTime(80, t); o2.frequency.exponentialRampToValueAtTime(164, t + 1.2);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.08, t + .8);
+    o.connect(g); o2.connect(g); g.connect(out); o.start(t); o2.start(t);
+    timers.push(setTimeout(() => { try{ g.gain.setTargetAtTime(.0001, ac.currentTime, .4); o.stop(ac.currentTime + 2); o2.stop(ac.currentTime + 2); }catch(e){} }, 9000));
+  }
+
   async function type(line){
     const el = $("#hud-lines");
-    for(const ch of line){ if(finished) return; el.textContent += ch; if(ch !== " ") tone(1800 + Math.random()*600, .03, "square", .012); await wait(15); }
+    for(const ch of line){ if(finished) return; el.textContent += ch; if(ch !== " ") tone(2200 + Math.random()*500, .02, "square", .008); await wait(18); }
     el.textContent += "\n";
   }
   const clock = () => { const d = new Date(); $("#hud-clock").textContent = d.toLocaleDateString("fr-FR") + "\n" + d.toLocaleTimeString("fr-FR"); };
@@ -673,19 +641,24 @@ refreshSoundRows();
     let s = ""; for(let i = 0; i < 40; i++) s += Math.random().toString(16).slice(2,8).toUpperCase() + " " + (Math.random()*999|0).toString().padStart(3,"0") + "\n";
     $("#hud-data").textContent = s + s;
   }
-  function setGauge(id, pct){ const g = $("#" + id); g.style.setProperty("--v", pct); let n = 0; const t = setInterval(() => { n = Math.min(pct, n + Math.ceil(pct/20) || 1); $("#" + id + "v").textContent = n + "%"; if(n >= pct) clearInterval(t); }, 70); timers.push(t); }
+  function setGauge(id, pct){ $("#" + id).style.setProperty("--v", pct); let n = 0; const t = setInterval(() => { n = Math.min(pct, n + (Math.ceil(pct/20) || 1)); $("#" + id + "v").textContent = n + "%"; if(n >= pct) clearInterval(t); }, 70); timers.push(t); }
 
   async function suitUp(){
-    try{ audio = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
-    const [greetSnd, endSnd] = await Promise.all([sounds.get("greet"), sounds.get("end")]);
+    try{ ac = new (window.AudioContext || window.webkitAudioContext)(); out = ac.createGain(); out.gain.value = .9; out.connect(ac.destination); }catch(e){ ac = null; }
     $("#suit-up").style.opacity = 0;
     clock(); timers.push(setInterval(clock, 1000)); fillData();
 
-    intro.classList.add("closed"); await wait(520); clank();
-    await wait(380); $("#suit-up").hidden = true; $("#readout").hidden = false;
-    intro.classList.add("hud-on"); tone(300, .6, "sine", .08, 1200);
-    await wait(250); intro.classList.add("s1"); tone(880, .08, "square", .03);
-    await wait(450); intro.classList.add("s2"); tone(1100, .08, "square", .03);
+    // Faceplate: servos spin up, plates slide, latches lock, seal.
+    servo(.55, 140, 420, .09); hiss(.5, .05, .05);
+    await wait(60); intro.classList.add("closed");
+    latch(.35, .42); latch(.3, .5); clank(.52);
+    await wait(900); $("#suit-up").hidden = true; $("#readout").hidden = false;
+
+    // Pressure equalizes, visor opens onto the HUD.
+    hiss(.7, .07, 0, 1800); servo(.6, 260, 180, .05, .05); hum();
+    intro.classList.add("hud-on");
+    await wait(280); intro.classList.add("s1"); tone(880, .07, "square", .03); tone(1760, .05, "square", .015, null, .06);
+    await wait(420); intro.classList.add("s2"); tone(1100, .07, "square", .03); servo(.25, 600, 900, .03);
 
     const films = filmsList();
     const done = films.filter(f => f.status === "done").length;
@@ -696,10 +669,7 @@ refreshSoundRows();
     const h = new Date().getHours(), hello = h < 6 || h >= 18 ? "Bonsoir" : "Bonjour";
     const cur = films.filter(f => f.status === "watching").sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0))[0];
     const next = cur || films.find(f => (f.status||"todo") === "todo");
-    const sayTime = s => { s = Math.round(s||0); const hh = Math.floor(s/3600), mm = Math.floor(s%3600/60); return (hh ? hh + " heure" + (hh > 1 ? "s " : " ") : "") + mm + " minute" + (mm > 1 ? "s" : ""); };
-    const spoken = hello + ". Tous les systèmes sont opérationnels. " + (!next ? "Marathon terminé. Mission accomplie." : cur ? "On reprend " + cur.title + " à " + sayTime(cur.pos) + "." : "Prochaine mission : " + next.title + ".");
 
-    const voice = greetSnd ? playBlob(greetSnd.blob) : speak(spoken, "fr");
     await type(hello + ". Systèmes en ligne.");
     await type("GitHub ........ " + (token ? "SYNCHRO" : "HORS LIGNE"));
     await type("Films vus ..... " + done + "/" + films.length);
@@ -707,16 +677,17 @@ refreshSoundRows();
 
     $("#lock-title").textContent = next ? next.title : "Mission accomplie";
     $("#lock-time").textContent = next ? (cur ? "reprise à " + fmt(cur.pos) : "à lancer") : "tous les films sont vus";
-    intro.classList.add("locked"); tone(1320, .12, "square", .04); setTimeout(() => tone(1320, .12, "square", .04), 160);
-    await voice; await wait(900); if(finished) return;
+    intro.classList.add("locked"); servo(.18, 500, 700, .03);
+    tone(1320, .09, "square", .035, null, .1); tone(1320, .09, "square", .035, null, .25); tone(1760, .2, "square", .03, null, .4);
+    await wait(2200); if(finished) return;
 
-    intro.classList.add("love-on"); tone(660, .7, "sine", .06); setTimeout(() => tone(990, .9, "sine", .05), 180);
-    await (endSnd ? playBlob(endSnd.blob) : speak("I love you 3000.", "en"));
-    await wait(1600); close();
+    intro.classList.add("love-on"); tone(523, .9, "sine", .05); tone(784, 1, "sine", .04, null, .15); tone(1046, 1.2, "sine", .035, null, .3);
+    await wait(2600); if(finished) return;
+    hiss(.6, .05, 0, 2500); servo(.4, 300, 120, .05);
+    close();
   }
   $("#suit-btn").onclick = suitUp;
   $("#suit-go").onclick = suitUp;
-  try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; }catch(e){}
 })();
 </script>
 </body>
