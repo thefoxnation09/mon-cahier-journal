@@ -106,76 +106,165 @@ footer b{color:var(--red);font-weight:400}
 .setup label{display:flex;flex-direction:column;gap:4px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--muted);flex:1 1 220px;min-width:0}
 .setup input{font:inherit;font-family:var(--mono);font-size:.85rem;padding:7px 9px;border:2px solid var(--line);background:var(--ink);color:var(--fg);min-width:0}
 .linkish{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer;padding:0;align-self:center}
+.snd-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:.9rem}
+.snd-k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--muted);min-width:8.5em}
+.snd-name{font-family:var(--mono);font-size:.8rem;color:var(--fg);min-width:0;overflow-wrap:anywhere;flex:1 1 120px}
+.snd-pick{flex:0 0 auto!important;display:inline-block!important;border:2px solid var(--line);padding:3px 10px;cursor:pointer;font-family:var(--cond);font-weight:600;letter-spacing:.06em;color:var(--fg)}
+.snd-pick:focus-within{outline:2px solid var(--gold)}
 .sync-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <style>
-/* ---------- Intro : le casque se ferme, J.A.R.V.I.S. s'allume ---------- */
+/* ---------- Intro : vue de l'intérieur du casque ---------- */
 [hidden]{display:none!important}
-#intro{position:fixed;inset:0;z-index:100;background:#03040a;color:#bfe6ff;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--cond);transition:opacity .9s ease}
+@property --v{syntax:"<number>";inherits:false;initial-value:0}
+#intro{position:fixed;inset:0;z-index:100;background:#02040a;color:#bfe6ff;overflow:hidden;font-family:var(--cond);transition:opacity .9s ease}
 #intro.out{opacity:0;pointer-events:none}
-.suit-up{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding:0 24px;transition:opacity .3s}
+.suit-up{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:0 24px;transition:opacity .3s}
 .suit-up .reactor{width:120px;height:120px;border:0;cursor:pointer;padding:0}
 .suit-up .reactor:focus-visible{outline:2px solid var(--gold);outline-offset:8px}
 .suit-up .go{font-family:var(--display);font-size:2rem;letter-spacing:.08em;color:var(--fg);background:none;border:0;cursor:pointer}
 .suit-up .go span{color:var(--gold)}
-.skip{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:none;border:1px solid #2a3a55;color:#7f98b8;font-family:var(--cond);letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;cursor:pointer;z-index:5}
-/* faceplate halves */
-.plate{position:absolute;left:-5%;right:-5%;height:52%;z-index:3;background:linear-gradient(180deg,#b3141a,#7a0c10 60%,#4a0508);transition:transform .55s cubic-bezier(.7,0,.3,1)}
+.suit-up small{font-family:var(--body);color:#5d6f8c;font-size:.8rem}
+.skip{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:rgba(2,4,10,.6);border:1px solid #2a3a55;color:#7f98b8;font-family:var(--cond);letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;cursor:pointer;z-index:9}
+
+/* faceplate closing */
+.plate{position:absolute;left:-5%;right:-5%;height:52%;z-index:8;background:linear-gradient(180deg,#b3141a,#7a0c10 60%,#4a0508);transition:transform .55s cubic-bezier(.7,0,.3,1)}
 .plate::after{content:"";position:absolute;left:0;right:0;height:14px;background:linear-gradient(90deg,#8a6a10,var(--gold),#8a6a10)}
-.plate.top{top:0;transform:translateY(-102%);clip-path:polygon(0 0,100% 0,100% 100%,62% 92%,50% 100%,38% 92%,0 100%)}
-.plate.top::after{bottom:0;clip-path:polygon(0 0,100% 0,100% 100%,62% 0,50% 100%,38% 0,0 100%)}
+.plate.top{top:0;transform:translateY(-102%)}
+.plate.top::after{bottom:0}
 .plate.bottom{bottom:0;transform:translateY(102%)}
 .plate.bottom::after{top:0}
 #intro.closed .plate{transform:none}
-#intro.hud-on .plate{transition:transform .7s cubic-bezier(.7,0,.3,1) .1s}
+#intro.hud-on .plate{transition:transform .8s cubic-bezier(.7,0,.3,1) .05s}
 #intro.hud-on .plate.top{transform:translateY(-102%)}
 #intro.hud-on .plate.bottom{transform:translateY(102%)}
-/* HUD */
-.hud{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .5s;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at center,rgba(63,169,245,.10),transparent 60%),repeating-linear-gradient(0deg,rgba(63,169,245,.05) 0 1px,transparent 1px 4px)}
+
+/* the view through the visor */
+.hud{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s}
 #intro.hud-on .hud{opacity:1}
-.hud::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 160px 40px #03040a;pointer-events:none}
-.rings{position:absolute;width:min(78vmin,560px);aspect-ratio:1;max-width:100%}
-.rings i{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(63,169,245,.45)}
-.rings i:nth-child(1){border-style:dashed;border-width:1px}
-.rings i:nth-child(2){inset:9%;border-color:rgba(63,169,245,.25) transparent rgba(63,169,245,.6) transparent;border-width:3px}
-.rings i:nth-child(3){inset:20%;border:1px solid rgba(245,185,22,.4);border-left-color:transparent}
-.scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(120,200,255,.8),transparent);top:0}
-.readout{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:0 24px;max-width:560px}
-.readout .who{font-size:.85rem;letter-spacing:.4em;color:#6fc3ff;text-transform:uppercase}
-.readout .lines{font-family:var(--mono);font-size:clamp(.78rem,3.4vw,.95rem);color:#bfe6ff;min-height:7.5em;text-align:left;white-space:pre-wrap;text-shadow:0 0 8px rgba(63,169,245,.6)}
-.love{font-family:var(--display);font-size:clamp(2.6rem,10vw,4.6rem);letter-spacing:.06em;color:var(--fg);opacity:0;transform:scale(.9);transition:opacity .6s,transform .8s;text-shadow:0 0 24px rgba(226,35,26,.6)}
+.visor{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 45%,rgba(40,120,200,.16),rgba(5,15,35,.5) 70%,#02040a),repeating-linear-gradient(0deg,rgba(90,180,255,.045) 0 1px,transparent 1px 3px)}
+.visor::after{content:"";position:absolute;inset:-20%;background:linear-gradient(105deg,transparent 42%,rgba(200,235,255,.07) 48%,rgba(200,235,255,.02) 52%,transparent 58%);transform:translateX(-60%)}
+.mask{position:absolute;inset:0;width:100%;height:100%}
+.hud-layer{position:absolute;inset:0;opacity:0;transition:opacity .35s}
+#intro.s1 .l1,#intro.s2 .l2,#intro.s3 .l3{opacity:1}
+.hud-layer.flick{animation:none}
+
+/* reticle */
+.reticle{position:absolute;left:50%;top:40%;width:min(46vmin,300px);aspect-ratio:1;transform:translate(-50%,-50%)}
+.reticle svg{width:100%;height:100%;overflow:visible}
+.reticle .spin{transform-origin:50px 50px}
+
+/* gauges */
+.gauges{position:absolute;left:max(7%,14px);top:30%;display:flex;flex-direction:column;gap:14px}
+.gauge{--v:0;width:clamp(54px,12vmin,84px);aspect-ratio:1;border-radius:50%;position:relative;
+  background:conic-gradient(from 210deg,var(--c,#3fa9f5) calc(var(--v)*.83%),rgba(63,169,245,.12) 0 83%,transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 58%,#000 60%);mask:radial-gradient(circle,transparent 58%,#000 60%);transition:--v 1.6s cubic-bezier(.2,.8,.2,1)}
+.gauge-wrap{position:relative;display:flex;align-items:center;gap:8px}
+.gauge-wrap b{position:absolute;left:0;width:clamp(54px,12vmin,84px);text-align:center;font-family:var(--mono);font-weight:500;font-size:clamp(.62rem,2.4vmin,.85rem);color:#dff3ff}
+.gauge-wrap span{font-size:.62rem;letter-spacing:.2em;color:#6fa8d6;text-transform:uppercase}
+
+/* radar + data */
+.side-r{position:absolute;right:max(7%,14px);top:28%;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.radar{width:clamp(64px,15vmin,110px);aspect-ratio:1;border-radius:50%;border:1px solid rgba(63,169,245,.5);position:relative;overflow:hidden;
+  background:radial-gradient(circle,transparent 32%,rgba(63,169,245,.25) 33%,transparent 34%,transparent 65%,rgba(63,169,245,.25) 66%,transparent 67%)}
+.radar::before{content:"";position:absolute;inset:0;background:conic-gradient(from 0deg,rgba(63,169,245,.55),transparent 25%)}
+.radar i{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.data{height:clamp(70px,18vmin,130px);overflow:hidden;font-family:var(--mono);font-size:.58rem;line-height:1.5;color:rgba(130,200,255,.6);text-align:right;
+  -webkit-mask:linear-gradient(transparent,#000 20%,#000 80%,transparent);mask:linear-gradient(transparent,#000 20%,#000 80%,transparent)}
+.data pre{margin:0;font:inherit}
+
+.corner{position:absolute;font-family:var(--mono);font-size:.68rem;color:#4f7ea8;letter-spacing:.1em;white-space:pre}
+.corner.tl{top:calc(16% + env(safe-area-inset-top,0px));left:18%}
+.corner.tr{top:calc(16% + env(safe-area-inset-top,0px));right:18%;text-align:right}
+
+/* J.A.R.V.I.S. readout + target lock */
+.readout{position:absolute;left:50%;top:60%;transform:translateX(-50%);width:min(88vw,460px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;z-index:4}
+.readout .who{font-size:.8rem;letter-spacing:.4em;color:#6fc3ff;text-transform:uppercase}
+.readout .lines{font-family:var(--mono);font-size:clamp(.74rem,3.2vw,.92rem);color:#bfe6ff;min-height:4.5em;text-align:left;white-space:pre-wrap;text-shadow:0 0 8px rgba(63,169,245,.6)}
+.lock{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(1.7);opacity:0;padding:10px 18px;text-align:center;z-index:4;transition:transform .5s cubic-bezier(.2,.9,.3,1.2),opacity .3s;
+  background:linear-gradient(var(--gold),var(--gold)) 0 0/14px 2px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 0/2px 14px no-repeat,
+  linear-gradient(var(--gold),var(--gold)) 100% 0/14px 2px no-repeat,linear-gradient(var(--gold),var(--gold)) 100% 0/2px 14px no-repeat,
+  linear-gradient(var(--gold),var(--gold)) 0 100%/14px 2px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 100%/2px 14px no-repeat,
+  linear-gradient(var(--gold),var(--gold)) 100% 100%/14px 2px no-repeat,linear-gradient(var(--gold),var(--gold)) 100% 100%/2px 14px no-repeat,rgba(2,4,10,.55)}
+.lock small{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.25em;color:var(--gold)}
+.lock strong{display:block;font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:clamp(1rem,4.4vw,1.35rem);color:#fff;max-width:70vw}
+.lock em{font-style:normal;font-family:var(--mono);color:#bfe6ff}
+#intro.locked .lock{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.love{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.9);z-index:5;white-space:nowrap;font-family:var(--display);font-size:clamp(2.4rem,10vw,4.6rem);letter-spacing:.06em;color:var(--fg);opacity:0;transition:opacity .6s,transform .8s;text-shadow:0 0 24px rgba(226,35,26,.7),0 0 4px #000}
 .love b{color:var(--red);font-weight:400}
-#intro.love-on .love{opacity:1;transform:none}
-.corner{position:absolute;font-family:var(--mono);font-size:.7rem;color:#4f7ea8;letter-spacing:.1em}
-.corner.tl{top:calc(18px + env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px))}
-.corner.tr{top:calc(18px + env(safe-area-inset-top,0px));right:max(18px,env(safe-area-inset-right,0px));text-align:right}
+#intro.love-on .love{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#intro.love-on .lock,#intro.love-on .reticle{opacity:0;transition:opacity .4s}
+
 @media (prefers-reduced-motion:no-preference){
-  .rings i:nth-child(1){animation:spin 18s linear infinite}
-  .rings i:nth-child(2){animation:spin 7s linear infinite reverse}
-  .rings i:nth-child(3){animation:spin 11s linear infinite}
-  .scan{animation:scan 2.4s linear infinite}
+  #intro.hud-on .hud{animation:shake .5s steps(2) 1}
+  @keyframes shake{25%{transform:translate(3px,-2px)}50%{transform:translate(-3px,2px)}75%{transform:translate(2px,1px)}}
+  #intro.hud-on .visor::after{animation:glare 3.5s ease-in-out .3s 1 forwards}
+  @keyframes glare{to{transform:translateX(60%)}}
+  .reticle .spin{animation:spin 9s linear infinite}
+  .reticle .spin2{animation:spin 14s linear infinite reverse;transform-origin:50px 50px}
+  .radar::before{animation:spin 2.2s linear infinite}
+  .data pre{animation:roll 9s linear infinite}
+  .hud-layer{animation:flick .5s steps(3) 1}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes scan{to{top:100%}}
+  @keyframes roll{to{transform:translateY(-50%)}}
+  @keyframes flick{0%{filter:brightness(2)}50%{filter:brightness(.4)}100%{filter:none}}
 }
+@media (max-width:520px){.corner.tl{left:22%}.corner.tr{right:22%}.gauges{top:22%}.side-r{top:20%}.reticle{top:42%}.lock,.love{top:42%}}
 </style>
 <div id="intro" role="dialog" aria-label="Démarrage">
   <div class="hud" aria-hidden="true">
-    <div class="rings"><i></i><i></i><i></i></div>
-    <div class="scan"></div>
-    <div class="corner tl">MK-L · HUD v3.0<br>PWR 400%</div>
-    <div class="corner tr" id="hud-clock">--:--</div>
+    <div class="visor"></div>
+
+    <div class="hud-layer l1">
+      <div class="reticle">
+        <svg viewBox="0 0 100 100" fill="none" stroke="#5fbfff">
+          <circle cx="50" cy="50" r="48" stroke-opacity=".25" stroke-dasharray="1 3"/>
+          <g class="spin"><circle cx="50" cy="50" r="40" stroke-opacity=".6" stroke-width=".8" stroke-dasharray="40 22 8 22"/></g>
+          <g class="spin2"><circle cx="50" cy="50" r="31" stroke="#f5b916" stroke-opacity=".55" stroke-width=".6" stroke-dasharray="3 6"/></g>
+          <path d="M50 4v10M50 86v10M4 50h10M86 50h10" stroke-opacity=".7"/>
+          <path d="M44 50h-6M56 50h6M50 44v-6M50 56v6" stroke="#dff3ff" stroke-width=".8"/>
+          <circle cx="50" cy="50" r="1.2" fill="#dff3ff" stroke="none"/>
+        </svg>
+      </div>
+      <div class="corner tl" id="hud-left">ARMURE · HUD 3.0
+PUISSANCE 400 %</div>
+      <div class="corner tr" id="hud-clock">--:--</div>
+    </div>
+
+    <div class="hud-layer l2">
+      <div class="gauges">
+        <div class="gauge-wrap"><div class="gauge" id="g1"></div><b id="g1v">0%</b><span>Énergie</span></div>
+        <div class="gauge-wrap"><div class="gauge" id="g2" style="--c:#f5b916"></div><b id="g2v">0%</b><span>Marathon</span></div>
+      </div>
+      <div class="side-r">
+        <div class="radar"><i style="left:30%;top:38%"></i><i style="left:64%;top:58%"></i><i style="left:52%;top:22%"></i></div>
+        <div class="data"><pre id="hud-data"></pre></div>
+      </div>
+    </div>
+
+    <svg class="mask" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <radialGradient id="padg" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="#0b0e18"/><stop offset="100%" stop-color="#010103"/></radialGradient>
+      </defs>
+      <path fill="url(#padg)" fill-rule="evenodd" d="M-5 -5H105V105H-5Z M10 20 C24 9 76 9 90 20 L96 58 C90 78 72 90 58 95 L50 89 L42 95 C28 90 10 78 4 58 Z"/>
+      <path fill="none" stroke="#3fa9f5" stroke-opacity=".35" stroke-width=".35" vector-effect="non-scaling-stroke" d="M10 20 C24 9 76 9 90 20 L96 58 C90 78 72 90 58 95 L50 89 L42 95 C28 90 10 78 4 58 Z"/>
+      <path fill="none" stroke="#e2231a" stroke-opacity=".22" stroke-width="2" d="M7 19 C22 6 78 6 93 19"/>
+    </svg>
   </div>
-  <div class="suit-up" id="suit-up">
-    <button class="reactor" id="suit-btn" type="button" aria-label="Mettre le casque"></button>
-    <button class="go" id="suit-go" type="button">Mettre le <span>casque</span></button>
-  </div>
+
+  <div class="lock" id="lock" aria-hidden="true"><small>CIBLE VERROUILLÉE</small><strong id="lock-title"></strong><em id="lock-time"></em></div>
+  <div class="love" aria-hidden="true">I love you <b>3000</b></div>
   <div class="readout" id="readout" hidden>
     <span class="who">J.A.R.V.I.S.</span>
     <div class="lines" id="hud-lines"></div>
-    <div class="love">I love you <b>3000</b></div>
+  </div>
+
+  <div class="suit-up" id="suit-up">
+    <button class="reactor" id="suit-btn" type="button" aria-label="Mettre le casque"></button>
+    <button class="go" id="suit-go" type="button">Mettre le <span>casque</span></button>
+    <small>Monte le son</small>
   </div>
   <div class="plate top" aria-hidden="true"></div>
   <div class="plate bottom" aria-hidden="true"></div>
@@ -208,6 +297,14 @@ footer b{color:var(--red);font-weight:400}
       <button class="primary" id="s-save" type="button">Connecter</button>
       <button class="linkish" id="s-forget" type="button">Oublier le jeton sur ce PC</button>
     </div>
+    <span class="label" style="color:var(--gold);margin-top:8px">Sons de l'intro (sur ce PC uniquement)</span>
+    <p>Choisis tes propres fichiers audio pour l'intro. Ils restent dans ce navigateur, ne partent jamais sur GitHub, et remplacent la voix du PC.</p>
+    <div class="snd-row"><span class="snd-k">Accueil</span><span class="snd-name" id="snd-greet-name">Voix du PC</span>
+      <label class="snd-pick" for="snd-greet">Choisir…<input id="snd-greet" type="file" accept="audio/*" hidden></label>
+      <button class="linkish" id="snd-greet-play" type="button" hidden>Écouter</button><button class="linkish" id="snd-greet-del" type="button" hidden>Retirer</button></div>
+    <div class="snd-row"><span class="snd-k">Phrase de fin</span><span class="snd-name" id="snd-end-name">Voix du PC</span>
+      <label class="snd-pick" for="snd-end">Choisir…<input id="snd-end" type="file" accept="audio/*" hidden></label>
+      <button class="linkish" id="snd-end-play" type="button" hidden>Écouter</button><button class="linkish" id="snd-end-del" type="button" hidden>Retirer</button></div>
   </section>
 
   <section class="resume" id="resume" hidden>
@@ -474,19 +571,64 @@ document.addEventListener("visibilitychange", () => { if(!document.hidden && !sy
 render();
 sync();
 
-/* ---------- Intro casque + J.A.R.V.I.S. ---------- */
+/* ---------- Sons perso de l'intro (gardés dans ce navigateur, jamais envoyés) ---------- */
+const sounds = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open("marathon-sons", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("sons");
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction("sons", mode); const q = fn(t.objectStore("sons")); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }); };
+  return {
+    get: k => tx("readonly", s => s.get(k)).catch(() => null),
+    set: (k, v) => tx("readwrite", s => s.put(v, k)),
+    del: k => tx("readwrite", s => s.delete(k))
+  };
+})();
+function playBlob(blob){
+  return new Promise(res => {
+    try{
+      const url = URL.createObjectURL(blob), a = new Audio(url);
+      const done = () => { URL.revokeObjectURL(url); res(); };
+      a.onended = done; a.onerror = done; setTimeout(done, 20000);
+      a.play().catch(done);
+    }catch(e){ res(); }
+  });
+}
+async function refreshSoundRows(){
+  for(const k of ["greet","end"]){
+    const v = await sounds.get(k);
+    $("#snd-" + k + "-name").textContent = v ? v.name : "Voix du PC";
+    $("#snd-" + k + "-play").hidden = !v; $("#snd-" + k + "-del").hidden = !v;
+  }
+}
+for(const k of ["greet","end"]){
+  $("#snd-" + k).addEventListener("change", async e => {
+    const f = e.target.files[0]; if(!f) return;
+    if(f.size > 15e6){ setStatus("Fichier trop lourd (15 Mo max).", true); return; }
+    try{ await sounds.set(k, {name:f.name, blob:f}); setStatus("Son enregistré sur ce PC."); }
+    catch(err){ setStatus("Impossible de garder ce son dans ce navigateur.", true); }
+    e.target.value = ""; refreshSoundRows();
+  });
+  $("#snd-" + k + "-play").onclick = async () => { const v = await sounds.get(k); if(v) playBlob(v.blob); };
+  $("#snd-" + k + "-del").onclick = async () => { await sounds.del(k).catch(() => {}); refreshSoundRows(); };
+}
+refreshSoundRows();
+
+/* ---------- Intro : vue de l'intérieur du casque ---------- */
 (() => {
   const intro = $("#intro"), wait = ms => new Promise(r => setTimeout(r, ms));
-  let finished = false, audio = null;
+  let finished = false, audio = null, timers = [];
   const close = () => {
     if(finished) return; finished = true;
     try{ speechSynthesis.cancel(); }catch(e){}
+    timers.forEach(clearInterval);
     intro.classList.add("out"); setTimeout(() => intro.hidden = true, 950);
   };
   $("#skip").onclick = close;
   document.addEventListener("keydown", e => { if(e.key === "Escape") close(); });
 
-  // Small synth sounds: the faceplate clank and HUD boot chirps.
   function tone(freq, dur, type, vol, slide){
     if(!audio) return;
     const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
@@ -504,13 +646,18 @@ sync();
     src.buffer = buf; src.connect(f).connect(g).connect(audio.destination); src.start();
     tone(90, .35, "sine", .5, 45);
   }
-  function speak(text){
+  // Pick the calmest-sounding installed voice for a language.
+  function pickVoice(lang, prefer){
+    const vs = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith(lang));
+    return vs.find(v => prefer.test(v.name)) || vs.find(v => /natural|online|google/i.test(v.name)) || vs[0] || null;
+  }
+  function speak(text, lang){
     return new Promise(res => {
       try{
         const u = new SpeechSynthesisUtterance(text);
-        const voices = speechSynthesis.getVoices();
-        u.voice = voices.find(v => /^fr/i.test(v.lang) && /male|thomas|henri|paul|daniel/i.test(v.name)) || voices.find(v => /^fr/i.test(v.lang)) || null;
-        u.lang = "fr-FR"; u.rate = 1.02; u.pitch = .85;
+        u.voice = lang === "en" ? pickVoice("en-gb", /george|daniel|ryan|thomas|male/i) || pickVoice("en", /guy|david|male/i)
+                                : pickVoice("fr", /henri|paul|thomas|claude|remy|male/i);
+        u.lang = lang === "en" ? "en-GB" : "fr-FR"; u.rate = .98; u.pitch = .9;
         u.onend = res; u.onerror = res; speechSynthesis.speak(u);
         setTimeout(res, 9000);
       }catch(e){ res(); }
@@ -518,44 +665,58 @@ sync();
   }
   async function type(line){
     const el = $("#hud-lines");
-    for(const ch of line){ if(finished) return; el.textContent += ch; if(ch !== " ") tone(1800 + Math.random()*600, .03, "square", .015); await wait(16); }
+    for(const ch of line){ if(finished) return; el.textContent += ch; if(ch !== " ") tone(1800 + Math.random()*600, .03, "square", .012); await wait(15); }
     el.textContent += "\n";
   }
   const clock = () => { const d = new Date(); $("#hud-clock").textContent = d.toLocaleDateString("fr-FR") + "\n" + d.toLocaleTimeString("fr-FR"); };
+  function fillData(){
+    let s = ""; for(let i = 0; i < 40; i++) s += Math.random().toString(16).slice(2,8).toUpperCase() + " " + (Math.random()*999|0).toString().padStart(3,"0") + "\n";
+    $("#hud-data").textContent = s + s;
+  }
+  function setGauge(id, pct){ const g = $("#" + id); g.style.setProperty("--v", pct); let n = 0; const t = setInterval(() => { n = Math.min(pct, n + Math.ceil(pct/20) || 1); $("#" + id + "v").textContent = n + "%"; if(n >= pct) clearInterval(t); }, 70); timers.push(t); }
 
   async function suitUp(){
     try{ audio = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+    const [greetSnd, endSnd] = await Promise.all([sounds.get("greet"), sounds.get("end")]);
     $("#suit-up").style.opacity = 0;
-    clock(); setInterval(clock, 1000);
-    intro.classList.add("closed"); await wait(520); clank();
-    await wait(450); $("#suit-up").hidden = true; $("#readout").hidden = false;
-    intro.classList.add("hud-on"); tone(420, .5, "sine", .08, 1300);
-    await wait(500);
+    clock(); timers.push(setInterval(clock, 1000)); fillData();
 
-    const h = new Date().getHours();
-    const hello = h < 6 || h >= 18 ? "Bonsoir" : "Bonjour";
+    intro.classList.add("closed"); await wait(520); clank();
+    await wait(380); $("#suit-up").hidden = true; $("#readout").hidden = false;
+    intro.classList.add("hud-on"); tone(300, .6, "sine", .08, 1200);
+    await wait(250); intro.classList.add("s1"); tone(880, .08, "square", .03);
+    await wait(450); intro.classList.add("s2"); tone(1100, .08, "square", .03);
+
     const films = filmsList();
+    const done = films.filter(f => f.status === "done").length;
+    const watched = films.reduce((a,f) => a + (f.status === "done" ? (f.runtime||0)*60 : Math.min(f.pos||0,(f.runtime||0)*60)), 0);
+    const total = films.reduce((a,f) => a + (f.runtime||0)*60, 0);
+    setGauge("g1", 100); setGauge("g2", total ? Math.round(watched/total*100) : 0);
+
+    const h = new Date().getHours(), hello = h < 6 || h >= 18 ? "Bonsoir" : "Bonjour";
     const cur = films.filter(f => f.status === "watching").sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0))[0];
     const next = cur || films.find(f => (f.status||"todo") === "todo");
-    const done = films.filter(f => f.status === "done").length;
     const sayTime = s => { s = Math.round(s||0); const hh = Math.floor(s/3600), mm = Math.floor(s%3600/60); return (hh ? hh + " heure" + (hh > 1 ? "s " : " ") : "") + mm + " minute" + (mm > 1 ? "s" : ""); };
-    const mission = !next ? "Marathon terminé. Mission accomplie." : cur ? "Reprise de " + cur.title + " à " + fmt(cur.pos) + "." : "Prochaine mission : " + next.title + ".";
-    const spoken = hello + ". Tous les systèmes sont opérationnels. " + (!next ? "Marathon terminé." : cur ? "On reprend " + cur.title + " à " + sayTime(cur.pos) + "." : "Prochaine mission : " + next.title + ".");
+    const spoken = hello + ". Tous les systèmes sont opérationnels. " + (!next ? "Marathon terminé. Mission accomplie." : cur ? "On reprend " + cur.title + " à " + sayTime(cur.pos) + "." : "Prochaine mission : " + next.title + ".");
 
-    const voice = speak(spoken);
-    await type(hello + ". Démarrage…");
-    await type("Combinaison ...... OK");
-    await type("GitHub ........... " + (token ? "OK" : "HORS LIGNE"));
-    await type("Films vus ........ " + done + "/" + films.length);
-    await type(mission);
-    await voice; if(finished) return;
+    const voice = greetSnd ? playBlob(greetSnd.blob) : speak(spoken, "fr");
+    await type(hello + ". Systèmes en ligne.");
+    await type("GitHub ........ " + (token ? "SYNCHRO" : "HORS LIGNE"));
+    await type("Films vus ..... " + done + "/" + films.length);
+    if(finished) return;
+
+    $("#lock-title").textContent = next ? next.title : "Mission accomplie";
+    $("#lock-time").textContent = next ? (cur ? "reprise à " + fmt(cur.pos) : "à lancer") : "tous les films sont vus";
+    intro.classList.add("locked"); tone(1320, .12, "square", .04); setTimeout(() => tone(1320, .12, "square", .04), 160);
+    await voice; await wait(900); if(finished) return;
+
     intro.classList.add("love-on"); tone(660, .7, "sine", .06); setTimeout(() => tone(990, .9, "sine", .05), 180);
-    speak("I love you 3000.");
-    await wait(2400); close();
+    await (endSnd ? playBlob(endSnd.blob) : speak("I love you 3000.", "en"));
+    await wait(1600); close();
   }
   $("#suit-btn").onclick = suitUp;
   $("#suit-go").onclick = suitUp;
-  try{ speechSynthesis.getVoices(); }catch(e){}
+  try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; }catch(e){}
 })();
 </script>
 </body>
