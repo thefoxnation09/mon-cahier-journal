@@ -110,17 +110,6 @@
    "note": "",
    "updatedAt": 0
   },
-  "fmw8bkpzl": {
-   "id": "fmw8bkpzl",
-   "title": "Coco",
-   "year": null,
-   "runtime": 1,
-   "order": 11,
-   "pos": 2516,
-   "status": "watching",
-   "note": "",
-   "updatedAt": 1794171928809
-  },
   "fmw8bn0s9": {
    "id": "fmw8bn0s9",
    "title": "COCO",
@@ -133,5 +122,7 @@
    "updatedAt": 1794171951082
   }
  },
- "deleted": {}
+ "deleted": {
+  "fmw8bkpzl": 1794171956302
+ }
 }
